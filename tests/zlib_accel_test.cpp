@@ -98,7 +98,8 @@ char* GenerateBlock(size_t length, BlockCompressibilityType block_type) {
 void DestroyBlock(char* buf) { free(buf); }
 
 int ZlibCompress(const char* input, size_t input_length, std::string* output,
-                 int window_bits, int flush, size_t* output_upper_bound) {
+                 int window_bits, int flush, size_t* output_upper_bound,
+                 ExecutionPath* execution_path) {
   z_stream stream;
   memset(&stream, 0, sizeof(z_stream));
 
@@ -118,6 +119,7 @@ int ZlibCompress(const char* input, size_t input_length, std::string* output,
   stream.next_out = reinterpret_cast<Bytef*>(&(*output)[0]);
 
   st = deflate(&stream, flush);
+  *execution_path = zlib_accel_get_deflate_execution_path(&stream);
   if (st != Z_STREAM_END) {
     return st;
   }
@@ -132,7 +134,7 @@ int ZlibCompress(const char* input, size_t input_length, std::string* output,
 int ZlibUncompress(const char* input, size_t input_length, size_t output_length,
                    char** uncompressed, size_t* uncompressed_length,
                    size_t* input_consumed, int window_bits, int flush,
-                   int input_chunks) {
+                   int input_chunks, ExecutionPath* execution_path) {
   z_stream stream;
   memset(&stream, 0, sizeof(z_stream));
 
@@ -158,6 +160,7 @@ int ZlibUncompress(const char* input, size_t input_length, size_t output_length,
         static_cast<unsigned int>(output_length - stream.total_out);
 
     st = inflate(&stream, flush);
+    *execution_path = zlib_accel_get_inflate_execution_path(&stream);
     if (st == Z_STREAM_END && input_chunk < (input_chunks - 1)) {
       return st;
     } else if (st == Z_OK && input_chunk == (input_chunks - 1)) {
@@ -406,25 +409,24 @@ bool ZlibCompressExpectError(TestParam test_param, size_t input_length,
   return fallback_expected && !test_param.zlib_fallback_compress;
 }
 
-bool ZlibUncompressExpectError(TestParam test_param, size_t input_length,
-                               std::string& compressed,
-                               size_t compressed_length,
-                               int window_bits_uncompress,
-                               bool compress_fallback = false) {
-  bool error_expected = false;
+bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
+                                  std::string& compressed,
+                                  size_t compressed_length,
+                                  int window_bits_uncompress,
+                                  bool compress_fallback = false) {
+  bool fallback_expected = false;
 #ifdef USE_QAT
   // if QAT selected, but options not supported or multi-call decompression, and
   // no zlib fallback
-  if (test_param.execution_path_uncompress == QAT &&
-      !test_param.zlib_fallback_uncompress) {
+  if (test_param.execution_path_uncompress == QAT) {
     if (!SupportedOptionsQAT(
             window_bits_uncompress,
             compressed_length / test_param.input_chunks_uncompress)) {
-      error_expected = true;
+      fallback_expected = true;
     } else if (input_length > QAT_HW_BUFF_SZ &&
                test_param.execution_path_compress != QAT) {
       // If it was not compressed by QAT, it is not chunked
-      error_expected = true;
+      fallback_expected = true;
     } else if (input_length > QAT_HW_BUFF_SZ &&
                test_param.execution_path_compress == QAT &&
                ((GetCompressedFormat(window_bits_uncompress) ==
@@ -440,23 +442,22 @@ bool ZlibUncompressExpectError(TestParam test_param, size_t input_length,
       // data).
       // - deflate raw: chunking during compression doesn't close the stream.
       // Decompression not possible.
-      error_expected = true;
+      fallback_expected = true;
     } else if (test_param.input_chunks_uncompress > 1) {
       // Multi-chunk tests that were not skipped are expected to cause error
-      error_expected = true;
+      fallback_expected = true;
     }
   }
 #endif
 #ifdef USE_IAA
   // if IAA selected, but options not supported or block not decompressible, and
   // no zlib fallback
-  if (test_param.execution_path_uncompress == IAA &&
-      !test_param.zlib_fallback_uncompress) {
+  if (test_param.execution_path_uncompress == IAA) {
     if (!SupportedOptionsIAA(
             window_bits_uncompress,
             compressed_length / test_param.input_chunks_uncompress,
             input_length)) {
-      error_expected = true;
+      fallback_expected = true;
     } else if (!IsIAADecompressible(
                    (uint8_t*)compressed.c_str(),
                    compressed_length / test_param.input_chunks_uncompress,
@@ -464,7 +465,7 @@ bool ZlibUncompressExpectError(TestParam test_param, size_t input_length,
       // IsIAADecompressible reports if block is decompressible by IAA
       // In some cases (when not looking for IAA marker) if may incorrectly
       // report block as IAA-decompressible.
-      error_expected = true;
+      fallback_expected = true;
     } else if (test_param.execution_path_compress != IAA &&
                test_param.block_size > (4 << 10) &&
                test_param.block_type == compressible_block) {
@@ -472,21 +473,32 @@ bool ZlibUncompressExpectError(TestParam test_param, size_t input_length,
       // it is less than 4kB if compressible. Incompressible or zero blocks
       // don't need long-range references and can still be decompressed even if
       // larger than 4kB.
-      error_expected = true;
+      fallback_expected = true;
     } else if (test_param.execution_path_compress == IAA && compress_fallback &&
                test_param.block_type == compressible_block) {
       // If IAA compression falls back to zlib (e.g., for 2MB blocks)
       // Incompressible or zero blocks don't need long-range references and can
       // still be decompressed
-      error_expected = true;
+      fallback_expected = true;
     } else if (test_param.input_chunks_uncompress > 1) {
       // IAA with QPL_FLAG_LAST gets QPL_STS_BAD_EOF_ERR if a stream is not
       // decompressed in one call
-      error_expected = true;
+      fallback_expected = true;
     }
   }
 #endif
-  return error_expected;
+  return fallback_expected;
+}
+
+bool ZlibUncompressExpectError(TestParam test_param, size_t input_length,
+                               std::string& compressed,
+                               size_t compressed_length,
+                               int window_bits_uncompress,
+                               bool compress_fallback = false) {
+  bool fallback_expected = ZlibUncompressExpectFallback(
+      test_param, input_length, compressed, compressed_length,
+      window_bits_uncompress, compress_fallback);
+  return fallback_expected && !test_param.zlib_fallback_uncompress;
 }
 
 class ZlibTest
@@ -535,9 +547,10 @@ TEST_P(ZlibTest, CompressDecompress) {
 
   std::string compressed;
   size_t output_upper_bound;
-  int ret = ZlibCompress(input, input_length, &compressed,
-                         test_param.window_bits_compress,
-                         test_param.flush_compress, &output_upper_bound);
+  ExecutionPath execution_path = UNDEFINED;
+  int ret = ZlibCompress(
+      input, input_length, &compressed, test_param.window_bits_compress,
+      test_param.flush_compress, &output_upper_bound, &execution_path);
 
   bool compress_fallback_expected =
       ZlibCompressExpectFallback(test_param, input_length, output_upper_bound);
@@ -547,6 +560,11 @@ TEST_P(ZlibTest, CompressDecompress) {
     return;
   } else {
     ASSERT_EQ(ret, Z_STREAM_END);
+    if (compress_fallback_expected) {
+      ASSERT_EQ(execution_path, ZLIB);
+    } else {
+      ASSERT_EQ(execution_path, test_param.execution_path_compress);
+    }
   }
 
   SetUncompressPath(test_param.execution_path_uncompress,
@@ -556,6 +574,7 @@ TEST_P(ZlibTest, CompressDecompress) {
   char* uncompressed;
   size_t uncompressed_length;
   size_t input_consumed;
+  execution_path = UNDEFINED;
   int window_bits_uncompress = test_param.window_bits_compress;
   if (test_param.window_bits_uncompress != 0) {
     window_bits_uncompress = test_param.window_bits_uncompress;
@@ -563,15 +582,22 @@ TEST_P(ZlibTest, CompressDecompress) {
   ret = ZlibUncompress(compressed.c_str(), compressed.length(), input_length,
                        &uncompressed, &uncompressed_length, &input_consumed,
                        window_bits_uncompress, test_param.flush_uncompress,
-                       test_param.input_chunks_uncompress);
+                       test_param.input_chunks_uncompress, &execution_path);
 
-  bool error_expected = ZlibUncompressExpectError(
+  bool error_expected = false;
+  bool uncompress_fallback_expected = ZlibUncompressExpectFallback(
       test_param, input_length, compressed, compressed.length(),
       window_bits_uncompress, compress_fallback_expected);
-  if (error_expected) {
+  if (uncompress_fallback_expected && !test_param.zlib_fallback_uncompress) {
     ASSERT_EQ(ret, Z_DATA_ERROR);
+    error_expected = true;
   } else {
     ASSERT_EQ(ret, Z_STREAM_END);
+    if (uncompress_fallback_expected) {
+      ASSERT_EQ(execution_path, ZLIB);
+    } else {
+      ASSERT_EQ(execution_path, test_param.execution_path_uncompress);
+    }
   }
 
   if (!error_expected) {
@@ -847,9 +873,10 @@ TEST_P(ZlibPartialAndMultiStreamTest, CompressDecompressPartialStream) {
 
   std::string compressed;
   size_t output_upper_bound;
-  int ret = ZlibCompress(input, input_length, &compressed,
-                         test_param.window_bits_compress,
-                         test_param.flush_compress, &output_upper_bound);
+  ExecutionPath execution_path = UNDEFINED;
+  int ret = ZlibCompress(
+      input, input_length, &compressed, test_param.window_bits_compress,
+      test_param.flush_compress, &output_upper_bound, &execution_path);
 
   bool error_expected =
       ZlibCompressExpectError(test_param, input_length, output_upper_bound);
@@ -868,12 +895,13 @@ TEST_P(ZlibPartialAndMultiStreamTest, CompressDecompressPartialStream) {
   char* uncompressed;
   size_t uncompressed_length;
   size_t input_consumed;
+  execution_path = UNDEFINED;
   int window_bits_uncompress = test_param.window_bits_compress;
   size_t compressed_length = compressed.length() / 2;
   ret = ZlibUncompress(compressed.c_str(), compressed_length, input_length,
                        &uncompressed, &uncompressed_length, &input_consumed,
                        window_bits_uncompress, test_param.flush_uncompress,
-                       test_param.input_chunks_uncompress);
+                       test_param.input_chunks_uncompress, &execution_path);
 
   // Only zlib decompression won't return an error
   if (test_param.execution_path_uncompress == ZLIB ||
@@ -912,9 +940,10 @@ TEST_P(ZlibPartialAndMultiStreamTest, CompressDecompressMultiStream) {
   std::string compressed1;
   size_t input_length1 = input_length / 2;
   size_t output_upper_bound1;
-  int ret = ZlibCompress(input, input_length1, &compressed1,
-                         test_param.window_bits_compress,
-                         test_param.flush_compress, &output_upper_bound1);
+  ExecutionPath execution_path = UNDEFINED;
+  int ret = ZlibCompress(
+      input, input_length1, &compressed1, test_param.window_bits_compress,
+      test_param.flush_compress, &output_upper_bound1, &execution_path);
 
   bool error_expected =
       ZlibCompressExpectError(test_param, input_length1, output_upper_bound1);
@@ -929,9 +958,10 @@ TEST_P(ZlibPartialAndMultiStreamTest, CompressDecompressMultiStream) {
   std::string compressed2;
   size_t input_length2 = input_length - input_length / 2;
   size_t output_upper_bound2;
+  execution_path = UNDEFINED;
   ret = ZlibCompress(input + input_length1, input_length2, &compressed2,
                      test_param.window_bits_compress, test_param.flush_compress,
-                     &output_upper_bound2);
+                     &output_upper_bound2, &execution_path);
 
   error_expected =
       ZlibCompressExpectError(test_param, input_length2, output_upper_bound2);
@@ -952,12 +982,13 @@ TEST_P(ZlibPartialAndMultiStreamTest, CompressDecompressMultiStream) {
   char* uncompressed;
   size_t uncompressed_length;
   size_t input_consumed;
+  execution_path = UNDEFINED;
   int window_bits_uncompress = test_param.window_bits_compress;
   size_t compressed_length = compressed1.length() + compressed2.length() / 2;
   ret = ZlibUncompress(compressed.c_str(), compressed_length, input_length,
                        &uncompressed, &uncompressed_length, &input_consumed,
                        window_bits_uncompress, test_param.flush_uncompress,
-                       test_param.input_chunks_uncompress);
+                       test_param.input_chunks_uncompress, &execution_path);
 
   error_expected =
       ZlibUncompressExpectError(test_param, input_length, compressed,

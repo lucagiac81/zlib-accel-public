@@ -652,6 +652,16 @@ void ZEXPORT zlib_accel_set_config(ConfigTag tag, int value) {
   }
 }
 
+ExecutionPath zlib_accel_get_deflate_execution_path(z_streamp strm) {
+  DeflateSettings* deflate_settings = deflate_stream_settings.Get(strm);
+  return deflate_settings->path;
+}
+
+ExecutionPath zlib_accel_get_inflate_execution_path(z_streamp strm) {
+  InflateSettings* inflate_settings = inflate_stream_settings.Get(strm);
+  return inflate_settings->path;
+}
+
 enum class FileMode { NONE, READ, WRITE, APPEND };
 
 struct GzipFile {

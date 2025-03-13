@@ -18,4 +18,9 @@ enum ConfigTag {
 
 enum ExecutionPath { UNDEFINED, ZLIB, QAT, IAA };
 
-void ZEXPORT zlib_accel_set_config(ConfigTag tag, int value);
+// Non-zlib APIs (for testing or non-transparent applications)
+ZEXTERN void ZEXPORT zlib_accel_set_config(ConfigTag tag, int value);
+ZEXTERN ExecutionPath ZEXPORT
+zlib_accel_get_deflate_execution_path(z_streamp strm);
+ZEXTERN ExecutionPath ZEXPORT
+zlib_accel_get_inflate_execution_path(z_streamp strm);
