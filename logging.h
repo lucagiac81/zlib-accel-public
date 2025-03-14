@@ -14,7 +14,7 @@
 #include "config/config.h"
 #include "utils.h"
 
-enum class LogLevel { LOG_NONE = 0, LOG_INFO = 1, LOG_ERROR = 2 };
+enum class LogLevel { LOG_NONE = 0, LOG_INFO = 1, LOG_ERROR = 2, LOG_STATS = 3 };
 
 #ifdef DEBUG_LOG
 inline FILE* log_file_stream = nullptr;
@@ -40,6 +40,9 @@ static inline void Log(LogLevel level, const char* format, ...) {
   }
 
   switch (level) {
+    case LogLevel::LOG_STATS:
+      fprintf(stream, "Stats: ");
+      break;
     case LogLevel::LOG_ERROR:
       fprintf(stream, "Error: ");
       break;
