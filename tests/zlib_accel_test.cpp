@@ -20,6 +20,7 @@
 #include "../iaa.h"
 #include "../logging.h"
 #include "../qat.h"
+#include "../statistics.h"
 #include "../utils.h"
 #include "test_utils.h"
 
@@ -350,7 +351,8 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
                                   std::string& compressed,
                                   size_t compressed_length,
                                   int window_bits_uncompress,
-                                  bool compress_fallback = false) {
+                                  bool compress_fallback = false,
+                                  bool* accelerator_tried = nullptr) {
   (void)test_param;
   (void)input_length;
   (void)compressed;
@@ -359,6 +361,7 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
   (void)compress_fallback;
 
   bool fallback_expected = false;
+  bool accelerator_tried_val = false;
 #ifdef USE_QAT
   // if QAT selected, but options not supported or multi-call decompression, and
   // no zlib fallback
@@ -371,6 +374,7 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
                test_param.execution_path_compress != QAT) {
       // If it was not compressed by QAT, it is not chunked
       fallback_expected = true;
+      accelerator_tried_val = true;
     } else if (input_length > QAT_HW_BUFF_SZ &&
                test_param.execution_path_compress == QAT &&
                ((GetCompressedFormat(window_bits_uncompress) ==
@@ -387,9 +391,11 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
       // - deflate raw: chunking during compression doesn't close the stream.
       // Decompression not possible.
       fallback_expected = true;
+      accelerator_tried_val = true;
     } else if (test_param.input_chunks_uncompress > 1) {
       // Multi-chunk tests that were not skipped are expected to cause error
       fallback_expected = true;
+      accelerator_tried_val = true;
     }
   }
 #endif
@@ -418,19 +424,25 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
       // don't need long-range references and can still be decompressed even if
       // larger than 4kB.
       fallback_expected = true;
+      accelerator_tried_val = true;
     } else if (test_param.execution_path_compress == IAA && compress_fallback &&
                test_param.block_type == compressible_block) {
       // If IAA compression falls back to zlib (e.g., for 2MB blocks)
       // Incompressible or zero blocks don't need long-range references and can
       // still be decompressed
       fallback_expected = true;
+      accelerator_tried_val = true;
     } else if (test_param.input_chunks_uncompress > 1) {
       // IAA with QPL_FLAG_LAST gets QPL_STS_BAD_EOF_ERR if a stream is not
       // decompressed in one call
       fallback_expected = true;
+      accelerator_tried_val = true;
     }
   }
 #endif
+  if (accelerator_tried != nullptr) {
+    *accelerator_tried = accelerator_tried_val;
+  }
   return fallback_expected;
 }
 
@@ -443,6 +455,18 @@ bool ZlibUncompressExpectError(TestParam test_param, size_t input_length,
       test_param, input_length, compressed, compressed_length,
       window_bits_uncompress, compress_fallback);
   return fallback_expected && !test_param.zlib_fallback_uncompress;
+}
+
+void VerifyStatIncremented(Statistic stat) {
+  if (AreStatsEnabled()) {
+    ASSERT_EQ(GetStat(stat), 1) << "Statistic id: " << stat;
+  }
+}
+
+void VerifyStatIncrementedUpTo(Statistic stat, int up_to) {
+  if (AreStatsEnabled()) {
+    ASSERT_LE(GetStat(stat), up_to) << "Statistic id: " << stat;
+  }
 }
 
 class ZlibTest
@@ -480,6 +504,9 @@ TEST_P(ZlibTest, CompressDecompress) {
     GTEST_SKIP();
   }
 
+  // Capture statistics at beginning of run
+  ResetStats();
+
   SetCompressPath(test_param.execution_path_compress,
                   test_param.zlib_fallback_compress,
                   test_param.iaa_prepend_empty_block);
@@ -495,19 +522,29 @@ TEST_P(ZlibTest, CompressDecompress) {
   int ret = ZlibCompress(
       input, input_length, &compressed, test_param.window_bits_compress,
       test_param.flush_compress, &output_upper_bound, &execution_path);
+  VerifyStatIncremented(DEFLATE_COUNT);
 
   bool compress_fallback_expected =
       ZlibCompressExpectFallback(test_param, input_length, output_upper_bound);
   if (compress_fallback_expected && !test_param.zlib_fallback_compress) {
     ASSERT_EQ(ret, Z_DATA_ERROR);
+    VerifyStatIncremented(DEFLATE_ERROR_COUNT);
     DestroyBlock(input);
     return;
   } else {
     ASSERT_EQ(ret, Z_STREAM_END);
     if (compress_fallback_expected) {
       ASSERT_EQ(execution_path, ZLIB);
+      VerifyStatIncremented(DEFLATE_ZLIB_COUNT);
     } else {
       ASSERT_EQ(execution_path, test_param.execution_path_compress);
+      if (test_param.execution_path_compress == QAT) {
+        VerifyStatIncremented(DEFLATE_QAT_COUNT);
+      } else if (test_param.execution_path_compress == IAA) {
+        VerifyStatIncremented(DEFLATE_IAA_COUNT);
+      } else if (test_param.execution_path_compress == ZLIB) {
+        VerifyStatIncremented(DEFLATE_ZLIB_COUNT);
+      }
     }
   }
 
@@ -527,20 +564,40 @@ TEST_P(ZlibTest, CompressDecompress) {
                        &uncompressed, &uncompressed_length, &input_consumed,
                        window_bits_uncompress, test_param.flush_uncompress,
                        test_param.input_chunks_uncompress, &execution_path);
+  VerifyStatIncrementedUpTo(INFLATE_COUNT, test_param.input_chunks_uncompress);
 
   bool error_expected = false;
+  bool accelerator_tried = false;
   bool uncompress_fallback_expected = ZlibUncompressExpectFallback(
       test_param, input_length, compressed, compressed.length(),
-      window_bits_uncompress, compress_fallback_expected);
+      window_bits_uncompress, compress_fallback_expected, &accelerator_tried);
   if (uncompress_fallback_expected && !test_param.zlib_fallback_uncompress) {
     ASSERT_EQ(ret, Z_DATA_ERROR);
+    VerifyStatIncremented(INFLATE_ERROR_COUNT);
+    if (accelerator_tried) {
+      if (test_param.execution_path_uncompress == QAT) {
+        VerifyStatIncremented(INFLATE_QAT_ERROR_COUNT);
+      } else if (test_param.execution_path_uncompress == IAA) {
+        VerifyStatIncremented(INFLATE_IAA_ERROR_COUNT);
+      }
+    }
     error_expected = true;
   } else {
     ASSERT_EQ(ret, Z_STREAM_END);
     if (uncompress_fallback_expected) {
       ASSERT_EQ(execution_path, ZLIB);
+      VerifyStatIncrementedUpTo(INFLATE_ZLIB_COUNT,
+                                test_param.input_chunks_uncompress);
     } else {
       ASSERT_EQ(execution_path, test_param.execution_path_uncompress);
+      if (test_param.execution_path_uncompress == QAT) {
+        VerifyStatIncremented(INFLATE_QAT_COUNT);
+      } else if (test_param.execution_path_uncompress == IAA) {
+        VerifyStatIncremented(INFLATE_IAA_COUNT);
+      } else if (test_param.execution_path_uncompress == ZLIB) {
+        VerifyStatIncrementedUpTo(INFLATE_ZLIB_COUNT,
+                                  test_param.input_chunks_uncompress);
+      }
     }
   }
 

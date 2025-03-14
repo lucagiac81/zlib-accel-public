@@ -1,0 +1,75 @@
+name: zlib-accel Build and Test (log, stats)
+on:
+- push
+- pull_request
+jobs:
+  build_and_test_zlib_accel:
+    name: Build and test zlib-accel (log, stats)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Print system info
+      run: |
+        echo "Kernel"
+        uname -r
+        echo "OS"
+        cat /etc/os-release
+        echo "Cores"
+        nproc
+        echo "Memory"
+        free
+        echo "User"
+        whoami
+    
+    - name: Install dependencies
+      run: |
+        export DEBIAN_FRONTEND=noninteractive
+        sudo apt-get install -y build-essential
+        sudo apt-get install -y cmake
+        sudo apt-get install -y libgtest-dev
+        sudo apt-get install -y zlib1g-dev
+    
+    - name: Checkout code
+      uses: actions/checkout@v4
+        
+    - name: Build zlib-accel (DEBUG_LOG=ON, ENABLE_STATISTICS=OFF)
+      run: |
+        pwd
+        mkdir build
+        cd build
+        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DDEBUG_LOG=ON -DENABLE_STATISTICS=OFF ..
+        make
+        
+    - name: Build zlib-accel (DEBUG_LOG=OFF, ENABLE_STATISTICS=ON)
+      run: |
+        pwd
+        rm -rf build
+        mkdir build
+        cd build
+        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DDEBUG_LOG=OFF -DENABLE_STATISTICS=ON ..
+        make
+        
+    - name: Build zlib-accel (DEBUG_LOG=ON, ENABLE_STATISTICS=ON)
+      run: |
+        pwd
+        rm -rf build
+        mkdir build
+        cd build
+        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DDEBUG_LOG=ON -DENABLE_STATISTICS=ON ..
+        make
+        
+    - name: Build tests
+      run: |
+        pwd
+        cd tests
+        mkdir build
+        cd build
+        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DDEBUG_LOG=ON ..
+        make
+    
+    - name: Run unit tests
+      run: |
+        pwd
+        cd tests/build
+        make run
+
+    

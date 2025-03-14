@@ -3,6 +3,7 @@
 
 #include "config.h"
 
+#include <climits>
 #include <filesystem>
 
 #include "../logging.h"
@@ -24,6 +25,7 @@ int qat_periodical_polling = 0;
 int qat_compression_level = 1;
 std::string log_file = "";
 int log_level = 2;
+int log_stats_samples = 1000;
 
 bool LoadConfigFile(std::string& file_content, const char* filePath) {
   const bool exists = std::filesystem::exists(filePath);
@@ -50,6 +52,7 @@ bool LoadConfigFile(std::string& file_content, const char* filePath) {
   configReader.GetValue("qat_compression_level", qat_compression_level, 9, 1);
   configReader.GetValue("log_file", log_file);
   configReader.GetValue("log_level", log_level, 2, 0);
+  configReader.GetValue("log_stats_samples", log_stats_samples, INT_MAX, 0);
 
   file_content.append(configReader.DumpValues());
 
@@ -94,6 +97,9 @@ void SetConfig(ConfigOption option, int value) {
     case LOG_LEVEL:
       log_level = value;
       break;
+    case LOG_STATS_SAMPLES:
+      log_stats_samples = value;
+      break;
   }
 }
 
@@ -123,6 +129,8 @@ int GetConfig(ConfigOption option) {
       return qat_compression_level;
     case LOG_LEVEL:
       return log_level;
+    case LOG_STATS_SAMPLES:
+      return log_stats_samples;
   }
   return 0;
 }
