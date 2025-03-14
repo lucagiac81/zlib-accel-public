@@ -19,12 +19,14 @@
 #include "config/config.h"
 #include "logging.h"
 #include "sharded_map.h"
-#include "statistics.h"
 #ifdef USE_IAA
 #include "iaa.h"
 #endif
 #ifdef USE_QAT
 #include "qat.h"
+#endif
+#ifdef ENABLE_STATISTICS
+#include "statistics.h"
 #endif
 
 // Original zlib functions
@@ -130,8 +132,6 @@ static void cleanup_zlib_accel(void) {
 // Avoid recursive call (e.g., if QATzip falls back to zlib internally)
 static thread_local bool in_call = false;
 
-static Statistics stats;
-
 struct DeflateSettings {
   DeflateSettings(int _level, int _method, int _window_bits, int _mem_level,
                   int _strategy)
@@ -214,7 +214,7 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
 
 int ZEXPORT deflate(z_streamp strm, int flush) {
   DeflateSettings* deflate_settings = deflate_stream_settings.Get(strm);
-  INCREMENT_STAT(stats.deflate_count);
+  INCREMENT_STAT(deflate_count);
 
   Log(LogLevel::LOG_INFO,
       "deflate Line %d, strm %p, avail_in %d, avail_out %d, flush %d, in_call "
@@ -261,8 +261,8 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
       ret = CompressIAA(strm->next_in, &input_len, strm->next_out, &output_len,
                         qpl_path_hardware, deflate_settings->window_bits);
       deflate_settings->path = IAA;
-      INCREMENT_STAT(stats.deflate_iaa_count);
-      INCREMENT_STAT_COND(ret != 0, stats.deflate_iaa_error_count);
+      INCREMENT_STAT(deflate_iaa_count);
+      INCREMENT_STAT_COND(ret != 0, deflate_iaa_error_count);
       in_call = false;
 #endif  // USE_IAA
     } else if (path_selected == QAT) {
@@ -271,8 +271,8 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
       ret = CompressQAT(strm->next_in, &input_len, strm->next_out, &output_len,
                         deflate_settings->window_bits);
       deflate_settings->path = QAT;
-      INCREMENT_STAT(stats.deflate_qat_count);
-      INCREMENT_STAT_COND(ret != 0, stats.deflate_qat_error_count);
+      INCREMENT_STAT(deflate_qat_count);
+      INCREMENT_STAT_COND(ret != 0, deflate_qat_error_count);
       in_call = false;
 #endif  // USE_QAT
     }
@@ -303,11 +303,11 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
     ret = orig_deflate(strm, flush);
     if (!in_call) {
       deflate_settings->path = ZLIB;
-      INCREMENT_STAT(stats.deflate_zlib_count);
+      INCREMENT_STAT(deflate_zlib_count);
     }
   } else {
     ret = Z_DATA_ERROR;
-    INCREMENT_STAT(stats.deflate_error_count);
+    INCREMENT_STAT(deflate_error_count);
   }
 
   Log(LogLevel::LOG_INFO,
