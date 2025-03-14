@@ -71,7 +71,7 @@ Refer to the links above for instructions on how to install the dependencies.
 
 ### Format Code
 
-The following target formats all code in the project:
+To format the code, execute the "format" target from the build directory:
 
 ```
 make format
