@@ -69,6 +69,15 @@ A setup with both QAT and IAA enabled has been tested on an AWS m7i.metal-24xl i
 Refer to the links above for instructions on how to install the dependencies.
 
 
+### Format Code
+
+The following target formats all code in the project:
+
+```
+make format
+```
+
+
 ## Build and Run Tests
 
 ```
@@ -83,7 +92,7 @@ make run
 The CMake options are the same as for the shared library build.
 
 
-## Collect Test Coverage
+### Collect Test Coverage
 
 - Build the shared library and tests with COVERAGE=ON in CMake commands.
 - Follow the instructions to run the tests.

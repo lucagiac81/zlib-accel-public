@@ -48,3 +48,9 @@ jobs:
         cmake ..
         make
         ./zlib_accel_test
+        
+    - name: Check formatting
+      run: |
+        pwd
+        find . -iname '*.h' -o -iname '*.cpp' | xargs clang-format -style=Google -i --dry-run -Werror
+    
