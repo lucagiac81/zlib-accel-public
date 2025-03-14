@@ -62,6 +62,7 @@ CMake supports the following options:
 - QPL_PATH: path to QPL for IAA acceleration (if not in a standard directory)
 - QATZIP_PATH: path to QATzip for QAT acceleration (if not in a standard directory)
 - DEBUG_LOG (ON/OFF): enable logging
+- ENABLE_STATISTICS (ON/OFF): enable statistics
 - COVERAGE (ON/OFF): enable test coverage (more details in a later section)
 - CMAKE_BUILD_TYPE (Debug/Release...)
 
@@ -195,9 +196,13 @@ log_level
 - This option applies only if the shim is built with DEBUG_LOG=ON.
 - If 1, error and info log messages are shown. If 2, only error log messages are shown. If 0, no log messages are shown.
 
+log_stats_samples
+- Values: 0-INT_MAX. Default 1000
+- Append statistics to log every N samples (this option specifies N).
+
 log_file
 - Values: path. Default: /tmp/zlib-accel.log
-- This option applies only if the shim is built with DEBUG_LOG=ON.
+- This option applies only if the shim is built with DEBUG_LOG=ON or ENABLE_STATISTICS=ON.
 - If specified, store log messages in the file. If not specified, log messages are printed to stdout.
 
 

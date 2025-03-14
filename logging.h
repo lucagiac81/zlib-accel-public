@@ -16,7 +16,7 @@
 
 enum class LogLevel { LOG_NONE = 0, LOG_INFO = 1, LOG_ERROR = 2 };
 
-#ifdef DEBUG_LOG
+#if defined(DEBUG_LOG) || defined(ENABLE_STATISTICS)
 inline FILE* log_file_stream = nullptr;
 
 inline static void CreateLogFile(const char* file_name) {
@@ -28,7 +28,9 @@ inline static void CloseLogFile() {
     fclose(log_file_stream);
   }
 }
+#endif
 
+#ifdef DEBUG_LOG
 static inline void Log(LogLevel level, const char* format, ...) {
   if (static_cast<int>(level) < config::log_level) {
     return;
@@ -56,6 +58,20 @@ static inline void Log(LogLevel level, const char* format, ...) {
 }
 #else
 #define Log(...)
+#endif
+
+#ifdef ENABLE_STATISTICS
+static inline void LogStats(const char* stats_str) {
+  FILE* stream = stdout;
+  if (log_file_stream != nullptr) {
+    stream = log_file_stream;
+  }
+
+  fprintf(stream, "Stats:\n");
+  fprintf(stream, "%s", stats_str);
+}
+#else
+#define LogStats(...)
 #endif
 
 #ifdef DEBUG_LOG
