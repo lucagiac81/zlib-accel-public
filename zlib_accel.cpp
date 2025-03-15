@@ -25,9 +25,7 @@
 #ifdef USE_QAT
 #include "qat.h"
 #endif
-#ifdef ENABLE_STATISTICS
 #include "statistics.h"
-#endif
 
 // Original zlib functions
 static int (*orig_deflateInit_)(z_streamp strm, int level, const char* version,

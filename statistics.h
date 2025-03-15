@@ -1,15 +1,17 @@
 #pragma once
 
-#include <atomic>
-#include <sstream>
-
 #ifdef ENABLE_STATISTICS
 #define INCREMENT_STAT(stat) stats["stat"]++
-#define INCREMENT_STAT_COND(stat, cond) if (cond) stats["stat"]++
+#define INCREMENT_STAT_COND(cond, stat) if (cond) stats["stat"]++
 #else
 #define INCREMENT_STAT(stat)
-#define INCREMENT_STAT_COND(stat, cond)
+#define INCREMENT_STAT_COND(cond, stat)
 #endif
+
+#ifdef ENABLE_STATISTICS
+#include <atomic>
+#include <map>
+#include <sstream>
 
 std::map<std::string, std::atomic<uint64_t>> stats = {
   {"deflate_count", 0},
@@ -28,7 +30,7 @@ std::string PrintStatistics() {
   }
   return printedStats.str();
 }
-
+#endif
 
 
 
