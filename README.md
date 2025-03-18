@@ -192,8 +192,8 @@ unset LD_PRELOAD
 ## Intercepted Zlib Functions
 
 deflate/inflate and related functions
-- deflateInit, deflateInit2, deflate, deflateEnd
-- inflateInit, inflateInit2, inflate, inflateEnd
+- deflateInit, deflateInit2, deflate, deflateEnd, deflateReset
+- inflateInit, inflateInit2, inflate, inflateEnd, inflateReset
 
 utility functions
 - compress, uncompress
