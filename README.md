@@ -105,7 +105,7 @@ make coverage
 
 ## Configuration
 
-The shim is configured through a file at /etc/zlib/config/default_config
+The shim is configured through a file at /etc/zlib-accel.conf
 The following options are supported.
 
 use_qat_compress
