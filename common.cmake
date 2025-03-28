@@ -18,6 +18,17 @@ if(DEBUG_LOG)
   add_compile_definitions(DEBUG_LOG)
 endif()
 
+set(COMPILER_FLAGS "-Wall -Wextra -Werror \
+-flto -fsanitize=cfi -fvisibility=hidden \
+-Wformat -Wformat-security -Werror=format-security \
+-z noexecstack \
+-D_FORTIFY_SOURCE=2 \
+-Wl,-z,relro -z,now \
+-mretpoline \
+-fstack-protector-strong")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILER_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS}")
+
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
