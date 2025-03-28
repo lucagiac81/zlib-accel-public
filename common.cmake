@@ -19,13 +19,20 @@ if(DEBUG_LOG)
 endif()
 
 set(COMPILER_FLAGS "-Wall -Wextra -Werror \
--flto -fsanitize=cfi -fvisibility=hidden \
+-flto -fvisibility=hidden \
 -Wformat -Wformat-security -Werror=format-security \
 -z noexecstack \
 -D_FORTIFY_SOURCE=2 \
 -Wl,-z,relro -z,now \
--mretpoline \
 -fstack-protector-strong")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  message(STATUS "GCC detected.")
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} -mfunction-return=thunk -mindirect-branch=thunk -mindirect-branch-register")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  message(STATUS "Clang detected.")
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} -fsanitize=cfi -mretpoline")
+endif()
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILER_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS}")
 
