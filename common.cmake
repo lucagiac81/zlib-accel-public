@@ -27,7 +27,7 @@ set(COMPILER_FLAGS "-Wall -Wextra -Werror \
 -fstack-protector-strong")
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   message(STATUS "GCC detected.")
-  set(COMPILER_FLAGS "${COMPILER_FLAGS} -mfunction-return=thunk -mindirect-branch=thunk -mindirect-branch-register")
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} -mindirect-branch-register")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   message(STATUS "Clang detected.")
   set(COMPILER_FLAGS "${COMPILER_FLAGS} -fsanitize=cfi -mretpoline")
