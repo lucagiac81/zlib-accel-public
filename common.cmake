@@ -23,7 +23,7 @@ set(COMPILER_FLAGS "-Wall -Wextra -Werror \
 -Wformat -Wformat-security -Werror=format-security \
 -z noexecstack \
 -D_FORTIFY_SOURCE=2 \
--Wl,-z,relro -z,now \
+-Wl,-z,relro,-z,now \
 -fstack-protector-strong")
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   message(STATUS "GCC detected.")

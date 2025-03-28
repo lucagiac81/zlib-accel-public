@@ -322,6 +322,9 @@ void SetCompressPath(ExecutionPath path, bool zlib_fallback,
       zlib_accel_set_config(USE_IAA_COMPRESS, 1);
       zlib_accel_set_config(USE_QAT_COMPRESS, 0);
       zlib_accel_set_config(USE_ZLIB_COMPRESS, zlib_fallback ? 1 : 0);
+      break;
+    default:
+      break;
   }
   zlib_accel_set_config(IAA_PREPEND_EMPTY_BLOCK, iaa_prepend_empty_block);
 }
@@ -343,6 +346,9 @@ void SetUncompressPath(ExecutionPath path, bool zlib_fallback,
       zlib_accel_set_config(USE_IAA_UNCOMPRESS, 1);
       zlib_accel_set_config(USE_QAT_UNCOMPRESS, 0);
       zlib_accel_set_config(USE_ZLIB_UNCOMPRESS, zlib_fallback ? 1 : 0);
+      break;
+    default:
+      break;
   }
   zlib_accel_set_config(IAA_PREPEND_EMPTY_BLOCK, iaa_prepend_empty_block);
 }
@@ -385,6 +391,10 @@ struct TestParam {
 
 bool ZlibCompressExpectFallback(TestParam test_param, size_t input_length,
                                 size_t output_upper_bound) {
+  (void)test_param;
+  (void)input_length;
+  (void)output_upper_bound;
+
   bool fallback_expected = false;
 #ifdef USE_QAT
   // if QAT selected, but options not supported
@@ -416,6 +426,13 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
                                   size_t compressed_length,
                                   int window_bits_uncompress,
                                   bool compress_fallback = false) {
+  (void)test_param;
+  (void)input_length;
+  (void)compressed;
+  (void)compressed_length;
+  (void)window_bits_uncompress;
+  (void)compress_fallback;
+
   bool fallback_expected = false;
 #ifdef USE_QAT
   // if QAT selected, but options not supported or multi-call decompression, and

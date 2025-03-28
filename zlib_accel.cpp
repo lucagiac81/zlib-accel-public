@@ -481,6 +481,7 @@ int ZEXPORT compress2(Bytef* dest, uLongf* destLen, const Bytef* source,
 
   int ret = 1;
   uint32_t input_len = sourceLen;
+  (void)input_len;
   uint32_t output_len = *destLen;
 
   bool iaa_available = false;
@@ -554,6 +555,7 @@ int ZEXPORT uncompress2(Bytef* dest, uLongf* destLen, const Bytef* source,
 
   int ret = 1;
   bool end_of_stream = true;
+  (void)end_of_stream;
   uint32_t input_len = *sourceLen;
   uint32_t output_len = *destLen;
 
@@ -867,8 +869,8 @@ gzFile ZEXPORT gzdopen(int fd, const char* mode) {
       __LINE__, fd, file, mode);
 
   FileMode file_mode = FileMode::NONE;
-  int oflag = GetOpenFlags(mode, &file_mode);
-
+  GetOpenFlags(mode, &file_mode);
+  
   gzip_files.Set(file, fd, file_mode);
   return file;
 }
@@ -876,6 +878,12 @@ gzFile ZEXPORT gzdopen(int fd, const char* mode) {
 static int GzwriteAcceleratorCompress(GzipFile* gz, uint8_t* input,
                                       uint32_t* input_length, uint8_t* output,
                                       uint32_t* output_length) {
+  (void)gz;
+  (void)input;
+  (void)input_length;
+  (void)output;
+  (void)output_length;
+
   int ret = 1;
   bool iaa_available = false;
   bool qat_available = false;
@@ -919,6 +927,13 @@ static int GzreadAcceleratorUncompress(GzipFile* gz, uint8_t* input,
                                        uint32_t* input_length, uint8_t* output,
                                        uint32_t* output_length,
                                        bool* end_of_stream) {
+  (void)gz;
+  (void)input;
+  (void)input_length;
+  (void)output;
+  (void)output_length;
+  (void)end_of_stream;
+
   int ret = 1;
   bool iaa_available = false;
   bool qat_available = false;
@@ -981,6 +996,7 @@ static int GzreadZlibUncompress(gzFile file, voidp buf, unsigned len) {
 }
 
 static int CompressAndWrite(gzFile file, GzipFile* gz) {
+  (void)file;
   uint32_t input_len = gz->data_buf_content;
   uint8_t* input = reinterpret_cast<uint8_t*>(gz->data_buf);
   uint32_t output_len = gz->io_buf_size;
@@ -1040,7 +1056,7 @@ int ZEXPORT gzwrite(gzFile file, voidpc buf, unsigned len) {
   Log(LogLevel::LOG_INFO, "gzwrite Line %d, file %p, buf %p, len %u\n",
       __LINE__, file, buf, len);
 
-  int written_bytes = 0;
+  unsigned int written_bytes = 0;
   bool accelerator_selected =
       config::use_iaa_compress || config::use_qat_compress;
   if (gz->path != ZLIB && accelerator_selected) {
@@ -1249,8 +1265,9 @@ int ZEXPORT gzclose(gzFile file) {
   if (gz->path != ZLIB &&
       (gz->mode == FileMode::WRITE || gz->mode == FileMode::APPEND)) {
     // Compress any remaining buffered data
+    int write_ret = 0;
     if (gz->data_buf_content > 0) {
-      ret = CompressAndWrite(file, gz);
+      write_ret = CompressAndWrite(file, gz);
     }
 
     // Capture file size and name before gzclose
@@ -1259,7 +1276,6 @@ int ZEXPORT gzclose(gzFile file) {
     ssize_t readlink_ret =
         readlink(("/proc/self/fd/" + std::to_string(gz->fd)).c_str(), file_path,
                  MAXPATHLEN - 1);
-    // TODO check for errors
     if (readlink_ret == -1) {
       ret = orig_gzclose(file);
       gzip_files.Unset(file);
@@ -1268,16 +1284,21 @@ int ZEXPORT gzclose(gzFile file) {
       return ret;
     }
     file_path[readlink_ret] = '\0';
-    // Close the file
-    int close_ret = orig_gzclose(file);
-    // Remove any file content added by gzclose
-    if (file_size != -1) {
-      int truncate_ret = truncate(file_path, file_size);
-    }
-    // TODO check for errors
 
-    if (ret == 0) {
+    int close_ret = orig_gzclose(file);
+
+    // Remove any file content added by gzclose
+    int truncate_ret = 0;
+    if (file_size != -1) {
+      truncate_ret = truncate(file_path, file_size);
+    }
+
+    if (write_ret != 0) {
+      ret = Z_STREAM_ERROR;
+    } else if (close_ret != Z_OK) {
       ret = close_ret;
+    } else if (truncate_ret != 0) {
+      ret = Z_STREAM_ERROR;
     }
   } else {
     ret = orig_gzclose(file);
