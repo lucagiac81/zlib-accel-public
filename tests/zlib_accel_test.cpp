@@ -1171,8 +1171,7 @@ TEST_F(ConfigLoaderTest, LoadInvalidConfig) {
 
 TEST_F(ConfigLoaderTest, LoadValidConfig) {
   std::string file_content;
-  EXPECT_TRUE(
-      LoadConfigFile(file_content, "../../config/default_config"));
+  EXPECT_TRUE(LoadConfigFile(file_content, "../../config/default_config"));
   EXPECT_EQ(zlib_accel_get_config(USE_QAT_COMPRESS), 1);
   EXPECT_EQ(zlib_accel_get_config(USE_QAT_UNCOMPRESS), 1);
   EXPECT_EQ(zlib_accel_get_config(USE_IAA_COMPRESS), 0);

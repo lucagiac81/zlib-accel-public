@@ -841,7 +841,7 @@ gzFile ZEXPORT gzdopen(int fd, const char* mode) {
 
   FileMode file_mode = FileMode::NONE;
   GetOpenFlags(mode, &file_mode);
-  
+
   gzip_files.Set(file, fd, file_mode);
   return file;
 }
