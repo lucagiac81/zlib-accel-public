@@ -6,6 +6,21 @@
 #include <string>
 
 namespace config {
+enum ConfigTag {
+  USE_QAT_COMPRESS,
+  USE_QAT_UNCOMPRESS,
+  USE_IAA_COMPRESS,
+  USE_IAA_UNCOMPRESS,
+  USE_ZLIB_COMPRESS,
+  USE_ZLIB_UNCOMPRESS,
+  IAA_COMPRESS_PERCENTAGE,
+  IAA_DECOMPRESS_PERCENTAGE,
+  IAA_PREPEND_EMPTY_BLOCK,
+  QAT_PERIODICAL_POLLING,
+  QAT_COMPRESSION_LEVEL,
+  LOG_LEVEL
+};
+
 extern int use_qat_compress;
 extern int use_qat_uncompress;
 extern int use_iaa_compress;
@@ -24,4 +39,12 @@ extern int log_level;
 __attribute__((visibility("default")))
 bool LoadConfigFile(std::string& file_content,
                     const char* filePath = "/etc/zlib-accel.conf");
+
+// Visible for testing
+__attribute__((visibility("default")))
+void zlib_accel_set_config(ConfigTag tag, int value);
+
+// Visible for testing
+__attribute__((visibility("default")))
+int zlib_accel_get_config(ConfigTag tag);
 }  // namespace config

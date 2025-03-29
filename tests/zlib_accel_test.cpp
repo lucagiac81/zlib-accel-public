@@ -21,6 +21,8 @@
 #include "../qat.h"
 #include "../utils.h"
 
+using namespace config;
+
 enum BlockCompressibilityType {
   compressible_block,
   incompressible_block,
@@ -1156,7 +1158,7 @@ void CreateAndWriteTempConfigFile(const char* file_path) {
 TEST_F(ConfigLoaderTest, LoadInvalidConfig) {
   std::string file_content;
   CreateAndWriteTempConfigFile("/tmp/invalid_config");
-  EXPECT_TRUE(config::LoadConfigFile(file_content, "/tmp/invalid_config"));
+  EXPECT_TRUE(LoadConfigFile(file_content, "/tmp/invalid_config"));
   EXPECT_EQ(zlib_accel_get_config(USE_QAT_COMPRESS), 0);
   EXPECT_EQ(zlib_accel_get_config(USE_QAT_UNCOMPRESS), 0);
   EXPECT_EQ(zlib_accel_get_config(USE_IAA_COMPRESS), 0);
@@ -1170,7 +1172,7 @@ TEST_F(ConfigLoaderTest, LoadInvalidConfig) {
 TEST_F(ConfigLoaderTest, LoadValidConfig) {
   std::string file_content;
   EXPECT_TRUE(
-      config::LoadConfigFile(file_content, "../../config/default_config"));
+      LoadConfigFile(file_content, "../../config/default_config"));
   EXPECT_EQ(zlib_accel_get_config(USE_QAT_COMPRESS), 1);
   EXPECT_EQ(zlib_accel_get_config(USE_QAT_UNCOMPRESS), 1);
   EXPECT_EQ(zlib_accel_get_config(USE_IAA_COMPRESS), 0);
