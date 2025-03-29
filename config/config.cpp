@@ -55,7 +55,7 @@ bool LoadConfigFile(std::string& file_content, const char* filePath) {
   return true;
 }
 
-void zlib_accel_set_config(ConfigTag tag, int value) {
+void SetConfig(ConfigTag tag, int value) {
   switch (tag) {
     case USE_QAT_COMPRESS:
       config::use_qat_compress = value;
@@ -96,7 +96,7 @@ void zlib_accel_set_config(ConfigTag tag, int value) {
   }
 }
 
-int zlib_accel_get_config(ConfigTag tag) {
+int GetConfig(ConfigTag tag) {
   switch (tag) {
     case USE_QAT_COMPRESS:
       return config::use_qat_compress;

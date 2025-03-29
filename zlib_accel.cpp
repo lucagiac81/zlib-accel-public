@@ -625,12 +625,12 @@ int ZEXPORT uncompress(Bytef* dest, uLongf* destLen, const Bytef* source,
   return uncompress2(dest, destLen, source, &srcLen);
 }
 
-ExecutionPath zlib_accel_get_deflate_execution_path(z_streamp strm) {
+ExecutionPath GetDeflateExecutionPath(z_streamp strm) {
   DeflateSettings* deflate_settings = deflate_stream_settings.Get(strm);
   return deflate_settings->path;
 }
 
-ExecutionPath zlib_accel_get_inflate_execution_path(z_streamp strm) {
+ExecutionPath GetInflateExecutionPath(z_streamp strm) {
   InflateSettings* inflate_settings = inflate_stream_settings.Get(strm);
   return inflate_settings->path;
 }

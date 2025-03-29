@@ -8,7 +8,7 @@
 
 // Visible for testing
 enum ExecutionPath { UNDEFINED, ZLIB, QAT, IAA };
-ExecutionPath zlib_accel_get_deflate_execution_path(z_streamp strm);
-ExecutionPath zlib_accel_get_inflate_execution_path(z_streamp strm);
+ExecutionPath GetDeflateExecutionPath(z_streamp strm);
+ExecutionPath GetInflateExecutionPath(z_streamp strm);
 
 #pragma GCC visibility pop

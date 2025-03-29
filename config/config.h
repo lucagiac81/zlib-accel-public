@@ -37,11 +37,9 @@ extern int qat_compression_level;
 extern std::string log_file;
 extern int log_level;
 
-// Visible for testing
+VISIBLE_FOR_TESTING bool LoadConfigFile(
+    std::string& file_content, const char* filePath = "/etc/zlib-accel.conf");
 
-bool LoadConfigFile(std::string& file_content,
-                    const char* filePath = "/etc/zlib-accel.conf");
-
-VISIBLE_FOR_TESTING void zlib_accel_set_config(ConfigTag tag, int value);
-VISIBLE_FOR_TESTING int zlib_accel_get_config(ConfigTag tag);
+VISIBLE_FOR_TESTING void SetConfig(ConfigTag tag, int value);
+VISIBLE_FOR_TESTING int GetConfig(ConfigTag tag);
 }  // namespace config
