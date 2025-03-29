@@ -58,40 +58,40 @@ bool LoadConfigFile(std::string& file_content, const char* filePath) {
 void SetConfig(ConfigTag tag, int value) {
   switch (tag) {
     case USE_QAT_COMPRESS:
-      config::use_qat_compress = value;
+      use_qat_compress = value;
       break;
     case USE_QAT_UNCOMPRESS:
-      config::use_qat_uncompress = value;
+      use_qat_uncompress = value;
       break;
     case USE_IAA_COMPRESS:
-      config::use_iaa_compress = value;
+      use_iaa_compress = value;
       break;
     case USE_IAA_UNCOMPRESS:
-      config::use_iaa_uncompress = value;
+      use_iaa_uncompress = value;
       break;
     case USE_ZLIB_COMPRESS:
-      config::use_zlib_compress = value;
+      use_zlib_compress = value;
       break;
     case USE_ZLIB_UNCOMPRESS:
-      config::use_zlib_uncompress = value;
+      use_zlib_uncompress = value;
       break;
     case IAA_COMPRESS_PERCENTAGE:
-      config::iaa_compress_percentage = value;
+      iaa_compress_percentage = value;
       break;
     case IAA_DECOMPRESS_PERCENTAGE:
-      config::iaa_decompress_percentage = value;
+      iaa_decompress_percentage = value;
       break;
     case IAA_PREPEND_EMPTY_BLOCK:
-      config::iaa_prepend_empty_block = value;
+      iaa_prepend_empty_block = value;
       break;
     case QAT_PERIODICAL_POLLING:
-      config::qat_periodical_polling = value;
+      qat_periodical_polling = value;
       break;
     case QAT_COMPRESSION_LEVEL:
-      config::qat_compression_level = value;
+      qat_compression_level = value;
       break;
     case LOG_LEVEL:
-      config::log_level = value;
+      log_level = value;
       break;
   }
 }
@@ -99,29 +99,29 @@ void SetConfig(ConfigTag tag, int value) {
 int GetConfig(ConfigTag tag) {
   switch (tag) {
     case USE_QAT_COMPRESS:
-      return config::use_qat_compress;
+      return use_qat_compress;
     case USE_QAT_UNCOMPRESS:
-      return config::use_qat_uncompress;
+      return use_qat_uncompress;
     case USE_IAA_COMPRESS:
-      return config::use_iaa_compress;
+      return use_iaa_compress;
     case USE_IAA_UNCOMPRESS:
-      return config::use_iaa_uncompress;
+      return use_iaa_uncompress;
     case USE_ZLIB_COMPRESS:
-      return config::use_zlib_compress;
+      return use_zlib_compress;
     case USE_ZLIB_UNCOMPRESS:
-      return config::use_zlib_uncompress;
+      return use_zlib_uncompress;
     case IAA_COMPRESS_PERCENTAGE:
-      return config::iaa_compress_percentage;
+      return iaa_compress_percentage;
     case IAA_DECOMPRESS_PERCENTAGE:
-      return config::iaa_decompress_percentage;
+      return iaa_decompress_percentage;
     case IAA_PREPEND_EMPTY_BLOCK:
-      return config::iaa_prepend_empty_block;
+      return iaa_prepend_empty_block;
     case QAT_PERIODICAL_POLLING:
-      return config::qat_periodical_polling;
+      return qat_periodical_polling;
     case QAT_COMPRESSION_LEVEL:
-      return config::qat_compression_level;
+      return qat_compression_level;
     case LOG_LEVEL:
-      return config::log_level;
+      return log_level;
   }
   return 0;
 }
