@@ -76,7 +76,7 @@ bool ConfigReader::ParseFile(string file_name) {
 
     if (config_data.empty()) continue;
 
-    unsigned int length = config_data.find(delimeter);
+    size_t length = config_data.find(delimeter);
 
     string tag, value;
 

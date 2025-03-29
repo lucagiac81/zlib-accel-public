@@ -21,13 +21,11 @@ endif()
 set(COMPILER_FLAGS "-Wall -Wextra -Werror \
 -flto -fvisibility=hidden \
 -Wformat -Wformat-security -Werror=format-security \
--z noexecstack \
 -D_FORTIFY_SOURCE=2 \
--Wl,-z,relro,-z,now \
 -fstack-protector-strong")
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   message(STATUS "GCC detected.")
-  set(COMPILER_FLAGS "${COMPILER_FLAGS} -mindirect-branch-register")
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} -Wl,-z,noexecstack,-z,relro,-z,now -mindirect-branch-register")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   message(STATUS "Clang detected.")
   set(COMPILER_FLAGS "${COMPILER_FLAGS} -fsanitize=cfi -mretpoline")
