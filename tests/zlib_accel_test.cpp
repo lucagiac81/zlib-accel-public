@@ -1157,13 +1157,13 @@ TEST_F(ConfigLoaderTest, LoadInvalidConfig) {
   std::string file_content;
   CreateAndWriteTempConfigFile("/tmp/invalid_config");
   EXPECT_TRUE(config::LoadConfigFile(file_content, "/tmp/invalid_config"));
-  EXPECT_EQ(config::use_qat_compress, 0);
-  EXPECT_EQ(config::use_qat_uncompress, 0);
-  EXPECT_EQ(config::use_iaa_compress, 0);
-  EXPECT_EQ(config::use_iaa_uncompress, 0);
-  EXPECT_EQ(config::use_zlib_compress, 0);
-  EXPECT_EQ(config::use_zlib_uncompress, 0);
-  EXPECT_EQ(config::log_level, 0);
+  EXPECT_EQ(zlib_accel_get_config(USE_QAT_COMPRESS), 0);
+  EXPECT_EQ(zlib_accel_get_config(USE_QAT_UNCOMPRESS), 0);
+  EXPECT_EQ(zlib_accel_get_config(USE_IAA_COMPRESS), 0);
+  EXPECT_EQ(zlib_accel_get_config(USE_IAA_UNCOMPRESS), 0);
+  EXPECT_EQ(zlib_accel_get_config(USE_ZLIB_COMPRESS), 0);
+  EXPECT_EQ(zlib_accel_get_config(USE_ZLIB_UNCOMPRESS), 0);
+  EXPECT_EQ(zlib_accel_get_config(LOG_LEVEL), 0);
   std::remove("/tmp/invalid_config");
 }
 
@@ -1171,13 +1171,13 @@ TEST_F(ConfigLoaderTest, LoadValidConfig) {
   std::string file_content;
   EXPECT_TRUE(
       config::LoadConfigFile(file_content, "../../config/default_config"));
-  EXPECT_EQ(config::use_qat_compress, 1);
-  EXPECT_EQ(config::use_qat_uncompress, 1);
-  EXPECT_EQ(config::use_iaa_compress, 0);
-  EXPECT_EQ(config::use_iaa_uncompress, 0);
-  EXPECT_EQ(config::use_zlib_compress, 1);
-  EXPECT_EQ(config::use_zlib_uncompress, 1);
-  EXPECT_EQ(config::log_level, 2);
+  EXPECT_EQ(zlib_accel_get_config(USE_QAT_COMPRESS), 1);
+  EXPECT_EQ(zlib_accel_get_config(USE_QAT_UNCOMPRESS), 1);
+  EXPECT_EQ(zlib_accel_get_config(USE_IAA_COMPRESS), 0);
+  EXPECT_EQ(zlib_accel_get_config(USE_IAA_UNCOMPRESS), 0);
+  EXPECT_EQ(zlib_accel_get_config(USE_ZLIB_COMPRESS), 1);
+  EXPECT_EQ(zlib_accel_get_config(USE_ZLIB_UNCOMPRESS), 1);
+  EXPECT_EQ(zlib_accel_get_config(LOG_LEVEL), 2);
 }
 
 int main(int argc, char* argv[]) {
