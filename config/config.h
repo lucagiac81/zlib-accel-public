@@ -3,6 +3,8 @@
 
 #pragma once
 
+#define VISIBLE_FOR_TESTING __attribute__((visibility("default")))
+
 #include <string>
 
 namespace config {
@@ -36,15 +38,10 @@ extern std::string log_file;
 extern int log_level;
 
 // Visible for testing
-__attribute__((visibility("default")))
+
 bool LoadConfigFile(std::string& file_content,
                     const char* filePath = "/etc/zlib-accel.conf");
 
-// Visible for testing
-__attribute__((visibility("default")))
-void zlib_accel_set_config(ConfigTag tag, int value);
-
-// Visible for testing
-__attribute__((visibility("default")))
-int zlib_accel_get_config(ConfigTag tag);
+VISIBLE_FOR_TESTING void zlib_accel_set_config(ConfigTag tag, int value);
+VISIBLE_FOR_TESTING int zlib_accel_get_config(ConfigTag tag);
 }  // namespace config
