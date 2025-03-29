@@ -8,7 +8,7 @@
 #include <string>
 
 namespace config {
-enum ConfigTag {
+enum ConfigOption {
   USE_QAT_COMPRESS,
   USE_QAT_UNCOMPRESS,
   USE_IAA_COMPRESS,
@@ -40,6 +40,6 @@ extern int log_level;
 VISIBLE_FOR_TESTING bool LoadConfigFile(
     std::string& file_content, const char* filePath = "/etc/zlib-accel.conf");
 
-VISIBLE_FOR_TESTING void SetConfig(ConfigTag tag, int value);
-VISIBLE_FOR_TESTING int GetConfig(ConfigTag tag);
+VISIBLE_FOR_TESTING void SetConfig(ConfigOption option, int value);
+VISIBLE_FOR_TESTING int GetConfig(ConfigOption option);
 }  // namespace config

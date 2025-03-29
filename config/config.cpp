@@ -55,8 +55,8 @@ bool LoadConfigFile(std::string& file_content, const char* filePath) {
   return true;
 }
 
-void SetConfig(ConfigTag tag, int value) {
-  switch (tag) {
+void SetConfig(ConfigOption option, int value) {
+  switch (option) {
     case USE_QAT_COMPRESS:
       use_qat_compress = value;
       break;
@@ -96,8 +96,8 @@ void SetConfig(ConfigTag tag, int value) {
   }
 }
 
-int GetConfig(ConfigTag tag) {
-  switch (tag) {
+int GetConfig(ConfigOption option) {
+  switch (option) {
     case USE_QAT_COMPRESS:
       return use_qat_compress;
     case USE_QAT_UNCOMPRESS:
