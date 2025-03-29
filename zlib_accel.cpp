@@ -693,6 +693,7 @@ int ZEXPORT zlib_accel_get_config(ConfigTag tag) {
     case LOG_LEVEL:
       return config::log_level;
   }
+  return 0;
 }
 
 ExecutionPath zlib_accel_get_deflate_execution_path(z_streamp strm) {

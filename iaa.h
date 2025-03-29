@@ -45,9 +45,13 @@ int UncompressIAA(uint8_t* input, uint32_t* input_length, uint8_t* output,
                   int window_bits, bool* end_of_stream,
                   bool detect_gzip_ext = false);
 
+// Visible for testing
+__attribute__((visibility("default")))
 bool SupportedOptionsIAA(int window_bits, uint32_t input_length,
                          uint32_t output_length);
 
+// Visible for testing
+__attribute__((visibility("default")))
 bool IsIAADecompressible(uint8_t* input, uint32_t input_length,
                          int window_bits);
 

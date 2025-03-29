@@ -20,6 +20,8 @@ extern int qat_compression_level;
 extern std::string log_file;
 extern int log_level;
 
+// Visible for testing
+__attribute__((visibility("default")))
 bool LoadConfigFile(std::string& file_content,
                     const char* filePath = "/etc/zlib-accel.conf");
 }  // namespace config
