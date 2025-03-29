@@ -1141,21 +1141,21 @@ INSTANTIATE_TEST_SUITE_P(
 
 class ConfigLoaderTest : public ::testing::Test {};
 
-void createAndWriteTempConfigFile(const char* filePath) {
-  std::ofstream tempFile(filePath);
-  tempFile << "use_qat_compress=5000\n";
-  tempFile << "use_qat_uncompress=aaaa\n";
-  tempFile << "use_iaa_compress=!0\n";
-  tempFile << "use_iaa_compress=!0\n";
-  tempFile << "use_zlib_compress=!0222\n";
-  tempFile << "use_zlib_uncompress=AB23\n";
-  tempFile << "log_level=10\n";
-  tempFile.close();
+void CreateAndWriteTempConfigFile(const char* file_path) {
+  std::ofstream temp_file(file_path);
+  temp_file << "use_qat_compress=5000\n";
+  temp_file << "use_qat_uncompress=aaaa\n";
+  temp_file << "use_iaa_compress=!0\n";
+  temp_file << "use_iaa_compress=!0\n";
+  temp_file << "use_zlib_compress=!0222\n";
+  temp_file << "use_zlib_uncompress=AB23\n";
+  temp_file << "log_level=10\n";
+  temp_file.close();
 }
 
 TEST_F(ConfigLoaderTest, LoadInvalidConfig) {
   std::string file_content;
-  createAndWriteTempConfigFile("/tmp/invalid_config");
+  CreateAndWriteTempConfigFile("/tmp/invalid_config");
   EXPECT_TRUE(config::LoadConfigFile(file_content, "/tmp/invalid_config"));
   EXPECT_EQ(config::use_qat_compress, 0);
   EXPECT_EQ(config::use_qat_uncompress, 0);
