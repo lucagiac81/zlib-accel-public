@@ -16,7 +16,7 @@ enum ConfigOption {
   USE_ZLIB_COMPRESS,
   USE_ZLIB_UNCOMPRESS,
   IAA_COMPRESS_PERCENTAGE,
-  IAA_DECOMPRESS_PERCENTAGE,
+  IAA_UNCOMPRESS_PERCENTAGE,
   IAA_PREPEND_EMPTY_BLOCK,
   QAT_PERIODICAL_POLLING,
   QAT_COMPRESSION_LEVEL,
@@ -30,7 +30,7 @@ extern int use_iaa_uncompress;
 extern int use_zlib_compress;
 extern int use_zlib_uncompress;
 extern int iaa_compress_percentage;
-extern int iaa_decompress_percentage;
+extern int iaa_uncompress_percentage;
 extern int iaa_prepend_empty_block;
 extern int qat_periodical_polling;
 extern int qat_compression_level;

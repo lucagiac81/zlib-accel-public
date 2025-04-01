@@ -143,7 +143,7 @@ iaa_prepend_empty_block
 - IAA has a 4kB history window limit and it is not able to decompress blocks that use a longer history window (up to 32kB per deflate standard).
 - During decompression, this marker indicates that the data was compressed by IAA and is therefore guarateed decompressible by IAA.
 
-iaa_decompress_percentage
+iaa_uncompress_percentage
 - Values: 0-100. Default: 50
 - If both IAA and QAT are enabled, percentage of decompression calls to offload to IAA.
 - If iaa_prepend_empty_block = 1, this percentage is only applied to data with the empty block marker.

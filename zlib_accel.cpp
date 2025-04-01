@@ -378,7 +378,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
     // one or the other
     ExecutionPath path_selected = ZLIB;
     if (iaa_available && qat_available) {
-      if (std::rand() % 100 < config::iaa_decompress_percentage) {
+      if (std::rand() % 100 < config::iaa_uncompress_percentage) {
         path_selected = IAA;
       } else {
         path_selected = QAT;

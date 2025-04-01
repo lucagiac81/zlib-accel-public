@@ -18,7 +18,7 @@ int use_iaa_uncompress = 0;
 int use_zlib_compress = 1;
 int use_zlib_uncompress = 1;
 int iaa_compress_percentage = 50;
-int iaa_decompress_percentage = 50;
+int iaa_uncompress_percentage = 50;
 int iaa_prepend_empty_block = 0;
 int qat_periodical_polling = 0;
 int qat_compression_level = 1;
@@ -42,7 +42,7 @@ bool LoadConfigFile(std::string& file_content, const char* filePath) {
   configReader.GetValue("use_zlib_uncompress", use_zlib_uncompress, 1, 0);
   configReader.GetValue("iaa_compress_percentage", iaa_compress_percentage, 100,
                         0);
-  configReader.GetValue("iaa_decompress_percentage", iaa_decompress_percentage,
+  configReader.GetValue("iaa_uncompress_percentage", iaa_uncompress_percentage,
                         100, 0);
   configReader.GetValue("iaa_prepend_empty_block", iaa_prepend_empty_block, 1,
                         0);
@@ -79,8 +79,8 @@ void SetConfig(ConfigOption option, int value) {
     case IAA_COMPRESS_PERCENTAGE:
       iaa_compress_percentage = value;
       break;
-    case IAA_DECOMPRESS_PERCENTAGE:
-      iaa_decompress_percentage = value;
+    case IAA_UNCOMPRESS_PERCENTAGE:
+      iaa_uncompress_percentage = value;
       break;
     case IAA_PREPEND_EMPTY_BLOCK:
       iaa_prepend_empty_block = value;
@@ -113,8 +113,8 @@ int GetConfig(ConfigOption option) {
       return use_zlib_uncompress;
     case IAA_COMPRESS_PERCENTAGE:
       return iaa_compress_percentage;
-    case IAA_DECOMPRESS_PERCENTAGE:
-      return iaa_decompress_percentage;
+    case IAA_UNCOMPRESS_PERCENTAGE:
+      return iaa_uncompress_percentage;
     case IAA_PREPEND_EMPTY_BLOCK:
       return iaa_prepend_empty_block;
     case QAT_PERIODICAL_POLLING:
