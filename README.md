@@ -8,17 +8,36 @@ Two accelerators are supported
 - Intel(R) In-Memory Analytics Accelerator (IAA)
 
 
-## Limitations
+## Scope/Constraints
 
-The shim is able to offload zlib calls that complete compression/decompression of one deflate stream in one call. "Streaming" compression/decompression (where compression/decompression is done incrementally) are not currently supported. 
-Therefore, not all applications can take advantage of the transparent offload provided by the shim, depending on how they use zlib. The applications and use cases we have tested so far are listed in a section below.
+This shim is not a general-purpose replacement for zlib, and it is able to offload compression/decompression jobs in certain conditions. Therefore, not all applications can take advantage of the transparent offload, depending on how they use zlib.  It is important to test thoroughly with your specific application and configuration. The use cases we have tested so far are listed in a section below.
 
-If the shim is not able to offload a job to an accelerator, it will fall back to zlib, ensuring the application still works correctly.
+In general, the shim is able to offload zlib calls that complete compression/decompression of one deflate stream in one call. "Streaming" compression/decompression (where compression/decompression is done incrementally) are not currently supported. If the shim is not able to offload a job to an accelerator, it will fall back to zlib, ensuring the application still works correctly.
 
 The shim has only been tested on Linux.
 
-Other work in progress:
-- CI is in development. Some validation checks are still performed internally (in particular, HW offload tests).
+
+### Hardware Acceleration
+
+QAT
+- Max buffer size (for compressed/uncompressed data): 512kB
+- Compression: 
+  - Input/output larger than the max buffer size will be compressed into multiple streams (for gzip or zlib formats) or multiple blocks in one stream (for deflate raw format). Note that generating multiple streams is not completely aligned with zlib behavior.
+- Decompression
+  - If end-of-stream is not reached in one call, zlib-accel will fall back to zlib. Resuming decompression mid-stream (stateful decompression) is not supported by the accelerator.
+  - If the input data contains more than one stream, decompression stops at the first end-of-stream (same as zlib).
+
+IAA
+- Max buffer size (for compressed/uncompressed data): 2MB
+- History window: 4kB
+- Compression:
+  - Input/output larger than the max buffer size will be handled by zlib (compression in multiple blocks for larger buffers will be enabled in later releases).
+- Decompression:
+  - If end-of-stream is not reached in one call, zlib-accel will fall back to zlib (stateful decompression will be enabled in later releases).
+  - If the input data contains more than one stream, decompression stops at the first end-of-stream (same as zlib).
+  - Data compressed with a history window > 4kB is in general not decompressible with IAA (zlib default window is 32kB).
+
+CI for HW offload tests is in development (tests are currently run internally).
 
 
 ## Releases
@@ -193,6 +212,7 @@ unset LD_PRELOAD
 deflate/inflate and related functions
 - deflateInit, deflateInit2, deflate, deflateEnd, deflateReset
 - inflateInit, inflateInit2, inflate, inflateEnd, inflateReset
+For deflate, offload is supported for Z_FINISH flush option. Support for additional options will be added in later releases. 
 
 utility functions
 - compress, uncompress
@@ -200,5 +220,3 @@ utility functions
 
 gzip file functions
 - gzopen, gzdopen, gzwrite, gzread, gzclose, gzeof
-
-
