@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-project(zlib-accel-test VERSION 0.0.1)
+project(zlib-accel-test VERSION 1.0.0)
 
 link_directories(../build)
 link_libraries(zlib-accel)

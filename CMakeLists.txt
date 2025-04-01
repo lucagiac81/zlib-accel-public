@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 project (zlib-accel
-        VERSION 0.1
+        VERSION 1.0.0
         DESCRIPTION "Zlib shim to accelerate deflate/inflate")
 
 include(common.cmake)
