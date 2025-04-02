@@ -13,6 +13,7 @@
 #include <iostream>
 #include <limits>
 #include <mutex>
+#include <random>
 #include <shared_mutex>
 #include <unordered_map>
 
@@ -240,7 +241,11 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
     // one or the other
     ExecutionPath path_selected = ZLIB;
     if (iaa_available && qat_available) {
-      if (std::rand() % 100 < config::iaa_compress_percentage) {
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::uniform_int_distribution<> distrib(0, 100);
+
+      if (distrib(gen) < config::iaa_compress_percentage) {
         path_selected = IAA;
       } else {
         path_selected = QAT;
@@ -378,7 +383,11 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
     // one or the other
     ExecutionPath path_selected = ZLIB;
     if (iaa_available && qat_available) {
-      if (std::rand() % 100 < config::iaa_uncompress_percentage) {
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::uniform_int_distribution<> distrib(0, 100);
+
+      if (distrib(gen) < config::iaa_uncompress_percentage) {
         path_selected = IAA;
       } else {
         path_selected = QAT;
