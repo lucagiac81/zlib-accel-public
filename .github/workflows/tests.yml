@@ -36,7 +36,7 @@ jobs:
         pwd
         find . -iname '*.h' -o -iname '*.cpp' | xargs clang-format -style=Google -i --dry-run -Werror
 
-    - name: Build zlib-accel (gcc)
+    - name: Build zlib-accel
       run: |
         pwd
         mkdir build
@@ -44,7 +44,7 @@ jobs:
         cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ ..
         make
         
-    - name: Build tests (gcc)
+    - name: Build tests
       run: |
         pwd
         cd tests

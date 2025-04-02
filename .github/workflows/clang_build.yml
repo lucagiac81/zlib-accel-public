@@ -49,4 +49,13 @@ jobs:
         cd build
         cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
         make
+        
+    - name: Build fuzz tests
+      run: |
+        pwd
+        cd fuzzing
+        mkdir build
+        cd build
+        cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
+        make
     
