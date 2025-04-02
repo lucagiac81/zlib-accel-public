@@ -10,6 +10,19 @@
 
 using namespace config;
 
+int GenerateWindowBits(FuzzedDataProvider& fuzzed_data) {
+  int format = fuzzed_data.ConsumeIntegralInRange<int>(0, 2);
+  switch (format) {
+    case 0:  // deflate raw
+      return -15;
+    case 1:  // zlib
+      return 15;
+    case 2:  // gzip
+      return 31;
+  }
+  return -15;
+}
+
 // Verify that deflate/inflate always succeed assuming zlib fallback is enabled.
 // The rest of the options are read from config file.
 void CompressDecompress(const uint8_t* input_data, size_t input_data_length,
@@ -17,14 +30,14 @@ void CompressDecompress(const uint8_t* input_data, size_t input_data_length,
   FuzzedDataProvider fuzzed_data(input_data, input_data_length);
   *fuzz_ret = 0;
 
-  std::string input_str = fuzzed_data.ConsumeRemainingBytesAsString();
-  const char* input = input_str.c_str();
-  size_t input_length = input_str.length();
-
-  int window_bits_compress = -15;
+  int window_bits_compress = GenerateWindowBits(fuzzed_data);
   int flush_compress = Z_FINISH;
   int window_bits_uncompress = window_bits_compress;
   int flush_uncompress = Z_SYNC_FLUSH;
+
+  std::string input_str = fuzzed_data.ConsumeRemainingBytesAsString();
+  const char* input = input_str.c_str();
+  size_t input_length = input_str.length();
 
   // This test assumes zlib fallback is available
   SetConfig(USE_ZLIB_COMPRESS, 1);
