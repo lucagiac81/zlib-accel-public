@@ -121,6 +121,21 @@ make coverage
 ```
 
 
+### Fuzz Testing
+
+```
+cd fuzzing
+mkdir build
+cd build
+cmake <options> ..
+make
+make run
+```
+
+The CMake options are the same as for the shared library build. Clang is required.
+For libFuzzer command-line options, refer to the [documentation](https://llvm.org/docs/LibFuzzer.html).
+
+
 ## Configuration
 
 The shim is configured through a file at /etc/zlib-accel.conf
