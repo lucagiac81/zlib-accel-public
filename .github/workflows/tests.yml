@@ -44,7 +44,7 @@ jobs:
         cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ ..
         make
         
-    - name: Build tests (gcc)
+    - name: Build tests
       run: |
         pwd
         cd tests
@@ -52,11 +52,10 @@ jobs:
         cd build
         cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ ..
         make
-    
+        
     - name: Run unit tests
       run: |
         pwd
         cd tests/build
         make run
-
-    
+        

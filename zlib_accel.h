@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
-#pragma GCC visibility push(default)
+#pragma visibility push(default)
 
 #include <zlib.h>
 
@@ -11,4 +11,4 @@ enum ExecutionPath { UNDEFINED, ZLIB, QAT, IAA };
 ExecutionPath GetDeflateExecutionPath(z_streamp strm);
 ExecutionPath GetInflateExecutionPath(z_streamp strm);
 
-#pragma GCC visibility pop
+#pragma visibility pop
