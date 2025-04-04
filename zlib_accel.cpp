@@ -28,7 +28,8 @@
 
 // Disable cfi-icall as it makes calls to orig* functions fail
 #if defined(__clang__)
-#pragma clang attribute push (__attribute__((no_sanitize("cfi-icall"))), apply_to=function)
+#pragma clang attribute push(__attribute__((no_sanitize("cfi-icall"))), \
+                             apply_to = function)
 #endif
 
 // Original zlib functions
