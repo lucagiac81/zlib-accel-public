@@ -46,6 +46,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 if(USE_IAA)
   if(NOT DEFINED QPL_PATH)
     find_package(Qpl REQUIRED)
@@ -71,4 +72,3 @@ if(USE_QAT)
 endif()
 
 link_libraries(z)
-link_libraries(dl)

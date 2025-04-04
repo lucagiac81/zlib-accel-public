@@ -8,6 +8,7 @@ project (zlib-accel
         DESCRIPTION "Zlib shim to accelerate deflate/inflate")
 
 include(common.cmake)
+link_libraries(dl)
 
 add_library(${PROJECT_NAME} SHARED config/config_reader.cpp config/config.cpp zlib_accel.cpp iaa.cpp qat.cpp utils.cpp sharded_map.h)
 
