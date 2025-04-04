@@ -26,6 +26,11 @@
 #include "qat.h"
 #endif
 
+// Disable cfi-icall as it makes calls to orig* functions fail
+#if defined(__clang__)
+#pragma clang attribute push (__attribute__((no_sanitize("cfi-icall"))), apply_to=function)
+#endif
+
 // Original zlib functions
 static int (*orig_deflateInit_)(z_streamp strm, int level, const char* version,
                                 int stream_size);
@@ -1286,3 +1291,7 @@ int ZEXPORT gzeof(gzFile file) {
   GzipFile* gz = gzip_files.Get(file);
   return gz->reached_eof;
 }
+
+#if defined(__clang__)
+#pragma clang attribute pop
+#endif
