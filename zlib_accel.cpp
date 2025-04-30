@@ -217,7 +217,7 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
 
 int ZEXPORT deflate(z_streamp strm, int flush) {
   DeflateSettings* deflate_settings = deflate_stream_settings.Get(strm);
-  INCREMENT_STAT(deflate_count);
+  INCREMENT_STAT(DEFLATE_COUNT);
 
   Log(LogLevel::LOG_INFO,
       "deflate Line %d, strm %p, avail_in %d, avail_out %d, flush %d, in_call "
@@ -265,8 +265,8 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
                         qpl_path_hardware, deflate_settings->window_bits);
       deflate_settings->path = IAA;
       in_call = false;
-      INCREMENT_STAT(deflate_iaa_count);
-      INCREMENT_STAT_COND(ret != 0, deflate_iaa_error_count);
+      INCREMENT_STAT(DEFLATE_IAA_COUNT);
+      INCREMENT_STAT_COND(ret != 0, DEFLATE_IAA_ERROR_COUNT);
 #endif  // USE_IAA
     } else if (path_selected == QAT) {
 #ifdef USE_QAT
@@ -275,8 +275,8 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
                         deflate_settings->window_bits);
       deflate_settings->path = QAT;
       in_call = false;
-      INCREMENT_STAT(deflate_qat_count);
-      INCREMENT_STAT_COND(ret != 0, deflate_qat_error_count);
+      INCREMENT_STAT(DEFLATE_QAT_COUNT);
+      INCREMENT_STAT_COND(ret != 0, DEFLATE_QAT_ERROR_COUNT);
 #endif  // USE_QAT
     }
 
@@ -304,7 +304,7 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
 
   if (in_call || config::use_zlib_compress) {
     ret = orig_deflate(strm, flush);
-    INCREMENT_STAT(deflate_zlib_count);
+    INCREMENT_STAT(DEFLATE_ZLIB_COUNT);
     if (!in_call) {
       deflate_settings->path = ZLIB;
     }
@@ -318,7 +318,7 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
       __LINE__, strm, ret, strm->avail_in, strm->avail_out,
       deflate_settings->path);
 
-  INCREMENT_STAT_COND(ret < 0, deflate_error_count);
+  INCREMENT_STAT_COND(ret < 0, DEFLATE_ERROR_COUNT);
   return ret;
 }
 
@@ -356,7 +356,7 @@ int ZEXPORT inflateInit2_(z_streamp strm, int window_bits, const char* version,
 
 int ZEXPORT inflate(z_streamp strm, int flush) {
   InflateSettings* inflate_settings = inflate_stream_settings.Get(strm);
-  INCREMENT_STAT(inflate_count);
+  INCREMENT_STAT(INFLATE_COUNT);
 
   Log(LogLevel::LOG_INFO,
       "inflate Line %d, strm %p, avail_in %d, avail_out %d, flush %d, in_call "
@@ -411,8 +411,8 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
                           inflate_settings->window_bits, &end_of_stream);
       inflate_settings->path = IAA;
       in_call = false;
-      INCREMENT_STAT(inflate_iaa_count);
-      INCREMENT_STAT_COND(ret != 0, inflate_iaa_error_count);
+      INCREMENT_STAT(INFLATE_IAA_COUNT);
+      INCREMENT_STAT_COND(ret != 0, INFLATE_IAA_ERROR_COUNT);
 #endif  // USE_IAA
     } else if (path_selected == QAT) {
 #ifdef USE_QAT
@@ -427,8 +427,8 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
         ret = 1;
       }
       in_call = false;
-      INCREMENT_STAT(inflate_qat_count);
-      INCREMENT_STAT_COND(ret != 0, inflate_qat_error_count);
+      INCREMENT_STAT(INFLATE_QAT_COUNT);
+      INCREMENT_STAT_COND(ret != 0, INFLATE_QAT_ERROR_COUNT);
 #endif  // USE_QAT
     }
 
@@ -460,7 +460,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
 
   if (in_call || config::use_zlib_uncompress) {
     ret = orig_inflate(strm, flush);
-    INCREMENT_STAT(inflate_zlib_count);
+    INCREMENT_STAT(INFLATE_ZLIB_COUNT);
     if (!in_call) {
       inflate_settings->path = ZLIB;
     }
@@ -474,7 +474,7 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
       __LINE__, strm, ret, strm->avail_in, strm->avail_out,
       inflate_settings->path);
 
-  INCREMENT_STAT_COND(ret < 0, inflate_error_count);
+  INCREMENT_STAT_COND(ret < 0, INFLATE_ERROR_COUNT);
   return ret;
 }
 

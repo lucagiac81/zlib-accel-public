@@ -1,8 +1,8 @@
 #pragma once
 
 #ifdef ENABLE_STATISTICS
-#define INCREMENT_STAT(stat) stats["stat"]++
-#define INCREMENT_STAT_COND(cond, stat) if (cond) stats["stat"]++
+#define INCREMENT_STAT(stat) stats[stat]++
+#define INCREMENT_STAT_COND(cond, stat) if (cond) stats[stat]++
 #define PRINT_STATS PrintStatistics()
 #else
 #define INCREMENT_STAT(stat)
@@ -17,28 +17,52 @@
 
 #include "logging.h"
 
-thread_local std::map<std::string, uint64_t> stats = {
-  {"deflate_count", 0},
-  {"deflate_error_count", 0},
-  {"deflate_qat_count", 0},
-  {"deflate_qat_error_count", 0},
-  {"deflate_iaa_count", 0},
-  {"deflate_iaa_error_count", 0},
-  {"deflate_zlib_count", 0},
+enum Statistics {
+	DEFLATE_COUNT = 0,
+	DEFLATE_ERROR_COUNT,
+	DEFLATE_QAT_COUNT,
+	DEFLATE_QAT_ERROR_COUNT,
+	DEFLATE_IAA_COUNT,
+	DEFLATE_IAA_ERROR_COUNT,
+	DEFLATE_ZLIB_COUNT,
 
-  {"inflate_count", 0},
-  {"inflate_error_count", 0},
-  {"inflate_qat_count", 0},
-  {"inflate_qat_error_count", 0},
-  {"inflate_iaa_count", 0},
-  {"inflate_iaa_error_count", 0},
-  {"inflate_zlib_count", 0}
+    INFLATE_COUNT,
+	INFLATE_ERROR_COUNT,
+	INFLATE_QAT_COUNT,
+	INFLATE_QAT_ERROR_COUNT,
+	INFLATE_IAA_COUNT,
+	INFLATE_IAA_ERROR_COUNT,
+	INFLATE_ZLIB_COUNT,
+
+	STATS_COUNT
 };
+
+
+const std::string stat_names[STATS_COUNT] {
+	"deflate_count",
+	"deflate_error_count",
+    "deflate_qat_count",
+    "deflate_qat_error_count",
+    "deflate_iaa_count",
+    "deflate_iaa_error_count",
+    "deflate_zlib_count",
+
+    "inflate_count",
+    "inflate_error_count",
+    "inflate_qat_count",
+    "inflate_qat_error_count",
+    "inflate_iaa_count",
+    "inflate_iaa_error_count",
+    "inflate_zlib_count"
+};
+
+
+thread_local uint64_t stats[STATS_COUNT];
 
 void PrintStatistics() {
   std::stringstream printedStats;
-  for (const auto& pair : stats) {
-    printedStats << pair.first << " = " << pair.second << std::endl;
+  for (int i = 0; i < STATS_COUNT; i++) {
+    printedStats << stat_names[i] << " = " << stats[i] << std::endl;
   }
   Log(LogLevel::LOG_STATS, printedStats.str().c_str());
 }
