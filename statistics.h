@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
 #pragma once
 
 #ifdef ENABLE_STATISTICS
@@ -64,7 +67,8 @@ void PrintStatistics() {
   for (int i = 0; i < STATS_COUNT; i++) {
     printedStats << stat_names[i] << " = " << stats[i] << std::endl;
   }
-  Log(LogLevel::LOG_STATS, printedStats.str().c_str());
+
+  LogStats(printedStats.str().c_str());
 }
 #else
 #define PrintStatistics()

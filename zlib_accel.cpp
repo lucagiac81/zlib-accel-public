@@ -118,16 +118,15 @@ static int init_zlib_accel(void) {
   std::string config_file_content;
   config::LoadConfigFile(config_file_content);
 
-#ifdef DEBUG_LOG
+#if defined(DEBUG_LOG) || defined(ENABLE_STATISTICS)
   if (!config::log_file.empty()) {
     CreateLogFile(config::log_file.c_str());
   }
-
 #endif
   return 0;
 }
 static void cleanup_zlib_accel(void) {
-#ifdef DEBUG_LOG
+#if defined(DEBUG_LOG) || defined(ENABLE_STATISTICS)
   CloseLogFile();
 #endif
 }
