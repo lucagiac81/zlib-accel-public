@@ -8,6 +8,7 @@
 #include "config/config.h"
 #include "logging.h"
 
+// clang-format off
 const std::string stat_names[STATS_COUNT] {
 	"deflate_count",
 	"deflate_error_count",
@@ -25,11 +26,14 @@ const std::string stat_names[STATS_COUNT] {
     "inflate_iaa_error_count",
     "inflate_zlib_count"
 };
+// clang-format on
 
 thread_local uint64_t stats[STATS_COUNT];
 
 void PrintStatistics() {
-  if ((stats[DEFLATE_COUNT] + stats[INFLATE_COUNT]) % config::log_stats_samples != 0) {
+  if ((stats[DEFLATE_COUNT] + stats[INFLATE_COUNT]) %
+          config::log_stats_samples !=
+      0) {
     return;
   }
 
