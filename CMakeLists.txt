@@ -10,7 +10,7 @@ project (zlib-accel
 include(common.cmake)
 link_libraries(dl)
 
-option(ENABLE_STATISTICS "Enable statistics" ON)
+option(ENABLE_STATISTICS "Enable statistics" OFF)
 if(ENABLE_STATISTICS)
   add_compile_definitions(ENABLE_STATISTICS)
 endif()
