@@ -8,6 +8,24 @@
 #include "config/config.h"
 #include "logging.h"
 
+const std::string stat_names[STATS_COUNT] {
+	"deflate_count",
+	"deflate_error_count",
+    "deflate_qat_count",
+    "deflate_qat_error_count",
+    "deflate_iaa_count",
+    "deflate_iaa_error_count",
+    "deflate_zlib_count",
+
+    "inflate_count",
+    "inflate_error_count",
+    "inflate_qat_count",
+    "inflate_qat_error_count",
+    "inflate_iaa_count",
+    "inflate_iaa_error_count",
+    "inflate_zlib_count"
+};
+
 thread_local uint64_t stats[STATS_COUNT];
 
 void PrintStatistics() {
