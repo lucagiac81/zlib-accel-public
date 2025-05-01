@@ -20,7 +20,8 @@ enum ConfigOption {
   IAA_PREPEND_EMPTY_BLOCK,
   QAT_PERIODICAL_POLLING,
   QAT_COMPRESSION_LEVEL,
-  LOG_LEVEL
+  LOG_LEVEL,
+  LOG_STATS_SAMPLES
 };
 
 extern int use_qat_compress;
@@ -36,6 +37,7 @@ extern int qat_periodical_polling;
 extern int qat_compression_level;
 extern std::string log_file;
 extern int log_level;
+extern int log_stats_samples;
 
 VISIBLE_FOR_TESTING bool LoadConfigFile(
     std::string& file_content, const char* filePath = "/etc/zlib-accel.conf");

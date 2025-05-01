@@ -15,8 +15,7 @@
 #include <atomic>
 #include <map>
 #include <sstream>
-
-#include "logging.h"
+#endif
 
 enum Statistics {
 	DEFLATE_COUNT = 0,
@@ -38,6 +37,7 @@ enum Statistics {
 	STATS_COUNT
 };
 
+#ifdef ENABLE_STATISTICS
 const std::string stat_names[STATS_COUNT] {
 	"deflate_count",
 	"deflate_error_count",
@@ -56,23 +56,9 @@ const std::string stat_names[STATS_COUNT] {
     "inflate_zlib_count"
 };
 
-thread_local uint64_t stats[STATS_COUNT];
+extern thread_local uint64_t stats[STATS_COUNT];
 
-void PrintStatistics() {
-  if ((stats[DEFLATE_COUNT] + stats[INFLATE_COUNT]) % 100 != 0) {
-    return;
-  }
-
-  std::stringstream printedStats;
-  for (int i = 0; i < STATS_COUNT; i++) {
-    printedStats << stat_names[i] << " = " << stats[i] << std::endl;
-  }
-
-  LogStats(printedStats.str().c_str());
-}
+void PrintStatistics();
 #else
-#define PrintStatistics()
+#define PrintStatistics(...)
 #endif
-
-
-
