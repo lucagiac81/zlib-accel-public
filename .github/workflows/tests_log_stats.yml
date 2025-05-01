@@ -31,21 +31,21 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
         
-    - name: Build zlib-accel (DEBUG_LOG=ON)
+    - name: Build zlib-accel (DEBUG_LOG=ON, ENABLE_STATISTICS=OFF)
       run: |
         pwd
         mkdir build
         cd build
-        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ DEBUG_LOG=ON ..
+        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DDEBUG_LOG=ON -DENABLE_STATISTICS=OFF..
         make
         
-    - name: Build zlib-accel (ENABLE_STATISTICS=ON)
+    - name: Build zlib-accel (DEBUG_LOG=OFF, ENABLE_STATISTICS=ON)
       run: |
         pwd
         rm -rf build
         mkdir build
         cd build
-        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ ENABLE_STATISTICS=ON ..
+        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DDEBUG_LOG=OFF -DENABLE_STATISTICS=ON ..
         make
         
     - name: Build zlib-accel (DEBUG_LOG=ON, ENABLE_STATISTICS=ON)
@@ -54,7 +54,7 @@ jobs:
         rm -rf build
         mkdir build
         cd build
-        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ DEBUG_LOG=ON ENABLE_STATISTICS=ON ..
+        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DDEBUG_LOG=ON -DENABLE_STATISTICS=ON ..
         make
         
     - name: Build tests
@@ -63,7 +63,7 @@ jobs:
         cd tests
         mkdir build
         cd build
-        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ DEBUG_LOG=ON ENABLE_STATISTICS=ON ..
+        cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DDEBUG_LOG=ON ..
         make
     
     - name: Run unit tests
