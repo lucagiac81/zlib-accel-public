@@ -17,6 +17,8 @@
 #include <atomic>
 #include <map>
 #include <sstream>
+
+extern thread_local uint64_t stats[STATS_COUNT];
 #endif
 
 enum Statistic {
@@ -39,13 +41,11 @@ enum Statistic {
   STATS_COUNT
 };
 
-#ifdef ENABLE_STATISTICS
-extern thread_local uint64_t stats[STATS_COUNT];
-
+VISIBLE_FOR_TESTING bool AreStatsEnabled();
 VISIBLE_FOR_TESTING void ResetStats();
 VISIBLE_FOR_TESTING uint64_t GetStat(Statistic stat);
-VISIBLE_FOR_TESTING void CopyStats(uint64_t* copy);
 
+#ifdef ENABLE_STATISTICS
 void PrintStats();
 #else
 #define PrintStats(...)

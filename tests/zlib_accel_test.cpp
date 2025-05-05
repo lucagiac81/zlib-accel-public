@@ -20,6 +20,7 @@
 #include "../iaa.h"
 #include "../logging.h"
 #include "../qat.h"
+#include "../statistics.h"
 #include "../utils.h"
 #include "test_utils.h"
 
@@ -445,10 +446,10 @@ bool ZlibUncompressExpectError(TestParam test_param, size_t input_length,
   return fallback_expected && !test_param.zlib_fallback_uncompress;
 }
 
-bool VerifyStatIncremented(uint64_t* pre_stats, Statistics stat) {
-#ifdef ENABLE_STATISTICS
-  ASSERT_EQ(GetStat(stat), pre_stats[stat]+1);
-#endif
+bool VerifyStatIncremented(Statistic stat) {
+  if (AreStatsEnabled()) {
+    ASSERT_EQ(GetStat(stat), 1);
+  }
 }
 
 class ZlibTest
@@ -487,12 +488,7 @@ TEST_P(ZlibTest, CompressDecompress) {
   }
 
   // Capture statistics at beginning of run
-#ifdef ENABLE_STATISTICS
-  uint64_t pre_stats[STATS_COUNT];
-  CopyStats(pre_stats);
-#else
-  uint64_t* pre_stats = nullptr;
-#endif
+  ResetStats();
 
   SetCompressPath(test_param.execution_path_compress,
                   test_param.zlib_fallback_compress,
@@ -509,21 +505,34 @@ TEST_P(ZlibTest, CompressDecompress) {
   int ret = ZlibCompress(
       input, input_length, &compressed, test_param.window_bits_compress,
       test_param.flush_compress, &output_upper_bound, &execution_path);
-  VerifyStatIncremented(pre_stats, DEFLATE_COUNT);
+  VerifyStatIncremented(DEFLATE_COUNT);
 
   bool compress_fallback_expected =
       ZlibCompressExpectFallback(test_param, input_length, output_upper_bound);
   if (compress_fallback_expected && !test_param.zlib_fallback_compress) {
     ASSERT_EQ(ret, Z_DATA_ERROR);
-    VerifyStatIncremented(pre_stats, DEFLATE_ERROR_COUNT);
+    VerifyStatIncremented(DEFLATE_ERROR_COUNT);
+    if (test_param.execution_path_compress == QAT) {
+      VerifyStatIncremented(DEFLATE_QAT_ERROR_COUNT);
+    } else if (test_param.execution_path_compress == IAA) {
+      VerifyStatIncremented(DEFLATE_IAA_ERROR_COUNT);
+    }
     DestroyBlock(input);
     return;
   } else {
     ASSERT_EQ(ret, Z_STREAM_END);
     if (compress_fallback_expected) {
       ASSERT_EQ(execution_path, ZLIB);
+      VerifyStatIncremented(DEFLATE_ZLIB_COUNT);
     } else {
       ASSERT_EQ(execution_path, test_param.execution_path_compress);
+      if (test_param.execution_path_compress == QAT) {
+        VerifyStatIncremented(DEFLATE_QAT_COUNT);
+      } else if (test_param.execution_path_compress == IAA) {
+        VerifyStatIncremented(DEFLATE_IAA_COUNT);
+      } else if (test_param.execution_path_compress == ZLIB) {
+        VerifyStatIncremented(DEFLATE_ZLIB_COUNT);
+      }
     }
   }
 

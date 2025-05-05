@@ -31,23 +31,33 @@ const std::string stat_names[STATS_COUNT] {
 // clang-format on
 
 thread_local uint64_t stats[STATS_COUNT];
+#endif
+
+bool AreStatsEnabled() {
+#ifdef ENABLE_STATISTICS
+  return true;
+#else
+  return false;
+#endif
+}
 
 void ResetStats() {
+#ifdef ENABLE_STATISTICS
   for (int i = 0; i < STATS_COUNT; i++) {
     stats[i] = 0;
   }
+#endif
 }
 
 uint64_t GetStat(Statistic stat) {
+#ifdef ENABLE_STATISTICS
   return stats[stat];
+#else
+  return 0;
+#endif
 }
 
-void CopyStats(uint64_t* copy) {
-  for (int i = 0; i < STATS_COUNT; i++) {
-    copy[i] = stats[i];
-  }
-}
-
+#ifdef ENABLE_STATISTICS
 void PrintStats() {
   if ((stats[DEFLATE_COUNT] + stats[INFLATE_COUNT]) %
           config::log_stats_samples !=
@@ -63,5 +73,6 @@ void PrintStats() {
 
   LogStats(printed_stats.str().c_str());
 }
+#endif
 
 #endif
