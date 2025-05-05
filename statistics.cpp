@@ -32,7 +32,23 @@ const std::string stat_names[STATS_COUNT] {
 
 thread_local uint64_t stats[STATS_COUNT];
 
-void PrintStatistics() {
+void ResetStats() {
+  for (int i = 0; i < STATS_COUNT; i++) {
+    stats[i] = 0;
+  }
+}
+
+uint64_t GetStat(Statistic stat) {
+  return stats[stat];
+}
+
+void CopyStats(uint64_t* copy) {
+  for (int i = 0; i < STATS_COUNT; i++) {
+    copy[i] = stats[i];
+  }
+}
+
+void PrintStats() {
   if ((stats[DEFLATE_COUNT] + stats[INFLATE_COUNT]) %
           config::log_stats_samples !=
       0) {

@@ -445,6 +445,12 @@ bool ZlibUncompressExpectError(TestParam test_param, size_t input_length,
   return fallback_expected && !test_param.zlib_fallback_uncompress;
 }
 
+bool VerifyStatIncremented(uint64_t* pre_stats, Statistics stat) {
+#ifdef ENABLE_STATISTICS
+  ASSERT_EQ(GetStat(stat), pre_stats[stat]+1);
+#endif
+}
+
 class ZlibTest
     : public testing::TestWithParam<
           std::tuple<ExecutionPath, bool, ExecutionPath, bool, int, int, int,
@@ -480,6 +486,14 @@ TEST_P(ZlibTest, CompressDecompress) {
     GTEST_SKIP();
   }
 
+  // Capture statistics at beginning of run
+#ifdef ENABLE_STATISTICS
+  uint64_t pre_stats[STATS_COUNT];
+  CopyStats(pre_stats);
+#else
+  uint64_t* pre_stats = nullptr;
+#endif
+
   SetCompressPath(test_param.execution_path_compress,
                   test_param.zlib_fallback_compress,
                   test_param.iaa_prepend_empty_block);
@@ -495,11 +509,13 @@ TEST_P(ZlibTest, CompressDecompress) {
   int ret = ZlibCompress(
       input, input_length, &compressed, test_param.window_bits_compress,
       test_param.flush_compress, &output_upper_bound, &execution_path);
+  VerifyStatIncremented(pre_stats, DEFLATE_COUNT);
 
   bool compress_fallback_expected =
       ZlibCompressExpectFallback(test_param, input_length, output_upper_bound);
   if (compress_fallback_expected && !test_param.zlib_fallback_compress) {
     ASSERT_EQ(ret, Z_DATA_ERROR);
+    VerifyStatIncremented(pre_stats, DEFLATE_ERROR_COUNT);
     DestroyBlock(input);
     return;
   } else {

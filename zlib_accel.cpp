@@ -217,7 +217,7 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
 int ZEXPORT deflate(z_streamp strm, int flush) {
   DeflateSettings* deflate_settings = deflate_stream_settings.Get(strm);
   INCREMENT_STAT(DEFLATE_COUNT);
-  PrintStatistics();
+  PrintStats();
 
   Log(LogLevel::LOG_INFO,
       "deflate Line %d, strm %p, avail_in %d, avail_out %d, flush %d, in_call "
@@ -357,7 +357,7 @@ int ZEXPORT inflateInit2_(z_streamp strm, int window_bits, const char* version,
 int ZEXPORT inflate(z_streamp strm, int flush) {
   InflateSettings* inflate_settings = inflate_stream_settings.Get(strm);
   INCREMENT_STAT(INFLATE_COUNT);
-  PrintStatistics();
+  PrintStats();
 
   Log(LogLevel::LOG_INFO,
       "inflate Line %d, strm %p, avail_in %d, avail_out %d, flush %d, in_call "

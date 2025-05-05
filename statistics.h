@@ -4,6 +4,7 @@
 #pragma once
 
 #ifdef ENABLE_STATISTICS
+#define VISIBLE_FOR_TESTING __attribute__((visibility("default")))
 #define INCREMENT_STAT(stat) stats[stat]++
 #define INCREMENT_STAT_COND(cond, stat) \
   if (cond) stats[stat]++
@@ -18,7 +19,7 @@
 #include <sstream>
 #endif
 
-enum Statistics {
+enum Statistic {
   DEFLATE_COUNT = 0,
   DEFLATE_ERROR_COUNT,
   DEFLATE_QAT_COUNT,
@@ -41,7 +42,11 @@ enum Statistics {
 #ifdef ENABLE_STATISTICS
 extern thread_local uint64_t stats[STATS_COUNT];
 
-void PrintStatistics();
+VISIBLE_FOR_TESTING void ResetStats();
+VISIBLE_FOR_TESTING uint64_t GetStat(Statistic stat);
+VISIBLE_FOR_TESTING void CopyStats(uint64_t* copy);
+
+void PrintStats();
 #else
-#define PrintStatistics(...)
+#define PrintStats(...)
 #endif
