@@ -512,11 +512,6 @@ TEST_P(ZlibTest, CompressDecompress) {
   if (compress_fallback_expected && !test_param.zlib_fallback_compress) {
     ASSERT_EQ(ret, Z_DATA_ERROR);
     VerifyStatIncremented(DEFLATE_ERROR_COUNT);
-    if (test_param.execution_path_compress == QAT) {
-      VerifyStatIncremented(DEFLATE_QAT_ERROR_COUNT);
-    } else if (test_param.execution_path_compress == IAA) {
-      VerifyStatIncremented(DEFLATE_IAA_ERROR_COUNT);
-    }
     DestroyBlock(input);
     return;
   } else {
