@@ -446,7 +446,7 @@ bool ZlibUncompressExpectError(TestParam test_param, size_t input_length,
   return fallback_expected && !test_param.zlib_fallback_uncompress;
 }
 
-bool VerifyStatIncremented(Statistic stat) {
+void VerifyStatIncremented(Statistic stat) {
   if (AreStatsEnabled()) {
     ASSERT_EQ(GetStat(stat), 1);
   }
