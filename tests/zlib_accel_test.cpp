@@ -352,7 +352,7 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
                                   size_t compressed_length,
                                   int window_bits_uncompress,
                                   bool compress_fallback = false,
-                                  bool* accelerator_tried) {
+                                  bool* accelerator_tried = nullptr) {
   (void)test_param;
   (void)input_length;
   (void)compressed;
@@ -361,7 +361,7 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
   (void)compress_fallback;
 
   bool fallback_expected = false;
-  *accelerator_tried = false;
+  bool accelerator_tried_temp = false;
 #ifdef USE_QAT
   // if QAT selected, but options not supported or multi-call decompression, and
   // no zlib fallback
@@ -374,7 +374,7 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
                test_param.execution_path_compress != QAT) {
       // If it was not compressed by QAT, it is not chunked
       fallback_expected = true;
-      *accelerator_tried = true;
+      accelerator_tried_temp = true;
     } else if (input_length > QAT_HW_BUFF_SZ &&
                test_param.execution_path_compress == QAT &&
                ((GetCompressedFormat(window_bits_uncompress) ==
@@ -391,11 +391,11 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
       // - deflate raw: chunking during compression doesn't close the stream.
       // Decompression not possible.
       fallback_expected = true;
-      *accelerator_tried = true;
+      accelerator_tried_temp = true;
     } else if (test_param.input_chunks_uncompress > 1) {
       // Multi-chunk tests that were not skipped are expected to cause error
       fallback_expected = true;
-      *accelerator_tried = true;
+      accelerator_tried_temp = true;
     }
   }
 #endif
@@ -424,22 +424,25 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
       // don't need long-range references and can still be decompressed even if
       // larger than 4kB.
       fallback_expected = true;
-      *accelerator_tried = true;
+      accelerator_tried_temp = true;
     } else if (test_param.execution_path_compress == IAA && compress_fallback &&
                test_param.block_type == compressible_block) {
       // If IAA compression falls back to zlib (e.g., for 2MB blocks)
       // Incompressible or zero blocks don't need long-range references and can
       // still be decompressed
       fallback_expected = true;
-      *accelerator_tried = true;
+      accelerator_tried_temp = true;
     } else if (test_param.input_chunks_uncompress > 1) {
       // IAA with QPL_FLAG_LAST gets QPL_STS_BAD_EOF_ERR if a stream is not
       // decompressed in one call
       fallback_expected = true;
-      *accelerator_tried = true;
+      accelerator_tried_temp = true;
     }
   }
 #endif
+  if (accelerator_tried != nullptr) {
+    *accelerator_tried = accelerator_tried_temp;
+  }
   return fallback_expected;
 }
 
