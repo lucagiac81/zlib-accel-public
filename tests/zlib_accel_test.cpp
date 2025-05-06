@@ -459,7 +459,7 @@ bool ZlibUncompressExpectError(TestParam test_param, size_t input_length,
 
 void VerifyStatIncremented(Statistic stat) {
   if (AreStatsEnabled()) {
-    ASSERT_EQ(GetStat(stat), 1);
+    ASSERT_EQ(GetStat(stat), 1) << "Statistic id: " << stat ;
   }
 }
 
@@ -572,7 +572,7 @@ TEST_P(ZlibTest, CompressDecompress) {
       if (test_param.execution_path_compress == QAT) {
         VerifyStatIncremented(INFLATE_QAT_ERROR_COUNT);
       } else if (test_param.execution_path_compress == IAA) {
-        VerifyStatIncremented(DEFLATE_IAA_ERROR_COUNT);
+        VerifyStatIncremented(INFLATE_IAA_ERROR_COUNT);
       }
     }
     error_expected = true;
