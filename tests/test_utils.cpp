@@ -12,6 +12,7 @@ int ZlibCompress(const char* input, size_t input_length, std::string* output,
   int st =
       deflateInit2(&stream, -1, Z_DEFLATED, window_bits, 8, Z_DEFAULT_STRATEGY);
   if (st != Z_OK) {
+    deflateEnd(&stream);
     return st;
   }
 
@@ -27,6 +28,7 @@ int ZlibCompress(const char* input, size_t input_length, std::string* output,
   st = deflate(&stream, flush);
   *execution_path = GetDeflateExecutionPath(&stream);
   if (st != Z_STREAM_END) {
+    deflateEnd(&stream);
     return st;
   }
   output->resize(stream.total_out);
@@ -44,6 +46,7 @@ int ZlibUncompress(const char* input, size_t input_length, size_t output_length,
 
   int st = inflateInit2(&stream, window_bits);
   if (st != Z_OK) {
+    inflateEnd(&stream);
     return st;
   }
 
@@ -65,11 +68,10 @@ int ZlibUncompress(const char* input, size_t input_length, size_t output_length,
 
     st = inflate(&stream, flush);
     *execution_path = GetInflateExecutionPath(&stream);
-    if (st == Z_STREAM_END && input_chunk < (input_chunks - 1)) {
-      return st;
-    } else if (st == Z_OK && input_chunk == (input_chunks - 1)) {
-      return st;
-    } else if (st != Z_OK && st != Z_STREAM_END) {
+    if ((st == Z_STREAM_END && input_chunk < (input_chunks - 1)) ||
+        (st == Z_OK && input_chunk == (input_chunks - 1)) ||
+        (st != Z_OK && st != Z_STREAM_END)) {
+      inflateEnd(&stream);
       return st;
     }
   }
