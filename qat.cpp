@@ -151,6 +151,8 @@ void QATJob::Close() {
   qzSession_zlib = nullptr;
   Close(qzSession_gzip);
   qzSession_gzip = nullptr;
+  Close(qzSession_gzip_ext);
+  qzSession_gzip_ext = nullptr;
 }
 
 void QATJob::Close(QzSession_T *qzSession) {
