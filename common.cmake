@@ -8,6 +8,8 @@ option(COVERAGE "for coverage" OFF)
 option(ASAN "Enable AddressSanitizer" OFF)
 option(MSAN "Enable MemorySanitizer" OFF)
 option(UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
+# TSAN may require disabling ASLR at runtime.
+option(TSAN "Enable ThreadSanitizer" OFF)
 
 if(USE_IAA)
   add_compile_definitions(USE_IAA)
@@ -72,6 +74,11 @@ endif()
 if(UBSAN)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=undefined")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
+endif()
+
+if(TSAN)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=thread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
