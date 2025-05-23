@@ -33,7 +33,7 @@ uint32_t configs[CONFIG_MAX] = {
     1000 /*log_stats_samples*/
 };
 
-bool LoadConfigFile(std::string& file_content, const char* filePath) {
+bool LoadConfigFile(std::string& file_content, const char* file_path) {
   // Initialize config_names within the function to avoid initialization order
   // problems. LoadConfigFile is called from the zlib-accel shared library
   // constructor. If config_names is a global array of strings, it may not be
@@ -57,45 +57,46 @@ bool LoadConfigFile(std::string& file_content, const char* filePath) {
   };
   // clang-format on
 
-  const bool exists = std::filesystem::exists(filePath);
-  const bool symlink = std::filesystem::is_symlink(filePath);
+  const bool exists = std::filesystem::exists(file_path);
+  const bool symlink = std::filesystem::is_symlink(file_path);
   if (!exists || symlink) {
     return false;
   }
-  ConfigReader configReader;
-  configReader.ParseFile(filePath);
+  ConfigReader config_reader;
+  config_reader.ParseFile(file_path);
   uint32_t value = 0;
-  configReader.GetValue(config_names[USE_QAT_COMPRESS], value, 1, 0);
+  config_reader.GetValue(config_names[USE_QAT_COMPRESS], value, 1, 0);
   configs[USE_QAT_COMPRESS] = value;
-  configReader.GetValue(config_names[USE_QAT_UNCOMPRESS], value, 1, 0);
+  config_reader.GetValue(config_names[USE_QAT_UNCOMPRESS], value, 1, 0);
   configs[USE_QAT_UNCOMPRESS] = value;
-  configReader.GetValue(config_names[USE_IAA_COMPRESS], value, 1, 0);
+  config_reader.GetValue(config_names[USE_IAA_COMPRESS], value, 1, 0);
   configs[USE_IAA_COMPRESS] = value;
-  configReader.GetValue(config_names[USE_IAA_UNCOMPRESS], value, 1, 0);
+  config_reader.GetValue(config_names[USE_IAA_UNCOMPRESS], value, 1, 0);
   configs[USE_IAA_UNCOMPRESS] = value;
-  configReader.GetValue(config_names[USE_ZLIB_COMPRESS], value, 1, 0);
+  config_reader.GetValue(config_names[USE_ZLIB_COMPRESS], value, 1, 0);
   configs[USE_ZLIB_COMPRESS] = value;
-  configReader.GetValue(config_names[USE_ZLIB_UNCOMPRESS], value, 1, 0);
+  config_reader.GetValue(config_names[USE_ZLIB_UNCOMPRESS], value, 1, 0);
   configs[USE_ZLIB_UNCOMPRESS] = value;
-  configReader.GetValue(config_names[IAA_COMPRESS_PERCENTAGE], value, 100, 0);
+  config_reader.GetValue(config_names[IAA_COMPRESS_PERCENTAGE], value, 100, 0);
   configs[IAA_COMPRESS_PERCENTAGE] = value;
-  configReader.GetValue(config_names[IAA_UNCOMPRESS_PERCENTAGE], value, 100, 0);
+  config_reader.GetValue(config_names[IAA_UNCOMPRESS_PERCENTAGE], value, 100,
+                         0);
   configs[IAA_UNCOMPRESS_PERCENTAGE] = value;
-  configReader.GetValue(config_names[IAA_PREPEND_EMPTY_BLOCK], value, 1, 0);
+  config_reader.GetValue(config_names[IAA_PREPEND_EMPTY_BLOCK], value, 1, 0);
   configs[IAA_PREPEND_EMPTY_BLOCK] = value;
-  configReader.GetValue(config_names[QAT_PERIODICAL_POLLING], value, 1, 0);
+  config_reader.GetValue(config_names[QAT_PERIODICAL_POLLING], value, 1, 0);
   configs[QAT_PERIODICAL_POLLING] = value;
-  configReader.GetValue(config_names[QAT_COMPRESSION_LEVEL], value, 9, 1);
+  config_reader.GetValue(config_names[QAT_COMPRESSION_LEVEL], value, 9, 1);
   configs[QAT_COMPRESSION_LEVEL] = value;
-  configReader.GetValue(config_names[QAT_COMPRESSION_ALLOW_CHUNKING], value, 1,
-                        0);
+  config_reader.GetValue(config_names[QAT_COMPRESSION_ALLOW_CHUNKING], value, 1,
+                         0);
   configs[QAT_COMPRESSION_ALLOW_CHUNKING] = value;
-  configReader.GetValue(config_names[LOG_LEVEL], value, 2, 0);
+  config_reader.GetValue(config_names[LOG_LEVEL], value, 2, 0);
   configs[LOG_LEVEL] = value;
-  configReader.GetValue(config_names[LOG_STATS_SAMPLES], value, UINT32_MAX, 0);
+  config_reader.GetValue(config_names[LOG_STATS_SAMPLES], value, UINT32_MAX, 0);
   configs[LOG_STATS_SAMPLES] = value;
-  configReader.GetValue("log_file", log_file);
-  file_content.append(configReader.DumpValues());
+  config_reader.GetValue("log_file", log_file);
+  file_content.append(config_reader.DumpValues());
 
   return true;
 }

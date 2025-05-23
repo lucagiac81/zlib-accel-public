@@ -160,6 +160,6 @@ bool ConfigReader::IsValidFileNameOrPath(const std::string& input) {
     return false;
   }
   // Regular expression to match valid file names and paths
-  std::regex validPattern("^[a-zA-Z0-9._/-]+$");
-  return std::regex_match(input, validPattern);
+  std::regex valid_pattern("^[a-zA-Z0-9._/-]+$");
+  return std::regex_match(input, valid_pattern);
 }
