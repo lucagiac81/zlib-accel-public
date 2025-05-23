@@ -17,6 +17,9 @@ link_libraries(gtest pthread)
 add_link_options("-Wl,--unresolved-symbols=ignore-all")
 
 add_executable(zlib_accel_test zlib_accel_test.cpp test_utils.cpp ../utils.cpp)
+if(MSAN)
+  set_target_properties(zlib_accel_test PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+endif()
 
 add_custom_target(run
     COMMAND ./zlib_accel_test
