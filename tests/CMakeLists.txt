@@ -19,6 +19,7 @@ add_link_options("-Wl,--unresolved-symbols=ignore-all")
 add_executable(zlib_accel_test zlib_accel_test.cpp test_utils.cpp ../utils.cpp)
 if(MSAN)
   set_target_properties(zlib_accel_test PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+  target_compile_options(zlib_accel_test PRIVATE -fsanitize-blacklist=../msan_skip.txt)
 endif()
 
 add_custom_target(run

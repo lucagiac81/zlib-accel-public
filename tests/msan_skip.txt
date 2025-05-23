@@ -1,0 +1,2 @@
+# Skip Google test functions
+fun:*testing*
