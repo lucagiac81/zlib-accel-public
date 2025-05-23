@@ -48,14 +48,14 @@ uint32_t configs[CONFIG_MAX] = {
     1000 /*log_stats_samples*/
 };
 
-bool LoadConfigFile(std::string& file_content, const char* filePath) {
-  const bool exists = std::filesystem::exists(filePath);
-  const bool symlink = std::filesystem::is_symlink(filePath);
+bool LoadConfigFile(std::string& file_content, const char* file_path) {
+  const bool exists = std::filesystem::exists(file_path);
+  const bool symlink = std::filesystem::is_symlink(file_path);
   if (!exists || symlink) {
     return false;
   }
   ConfigReader configReader;
-  configReader.ParseFile(filePath);
+  configReader.ParseFile(file_path);
   int value = 0;
   configReader.GetValue(config_names[USE_QAT_COMPRESS], value, 1, 0);
   configs[USE_QAT_COMPRESS] = value;

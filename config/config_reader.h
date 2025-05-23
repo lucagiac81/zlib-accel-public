@@ -16,7 +16,7 @@ class ConfigReader {
   std::map<std::string, std::string> config_settings_map;
 
  public:
-  bool ParseFile(std::string fileName);
+  bool ParseFile(std::string file_name);
   bool GetValue(std::string tag, int& value, int max_value = 100,
                 int min_value = 0);
   bool GetValue(std::string tag, std::string& value);
