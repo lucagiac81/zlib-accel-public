@@ -62,7 +62,7 @@ bool LoadConfigFile(std::string& file_content, const char* filePath) {
   }
   ConfigReader configReader;
   configReader.ParseFile(filePath);
-  int value = 0;
+  uint32_t value = 0;
   configReader.GetValue(config_names[USE_QAT_COMPRESS], value, 1, 0);
   configs[USE_QAT_COMPRESS] = value;
   configReader.GetValue(config_names[USE_QAT_UNCOMPRESS], value, 1, 0);
@@ -87,7 +87,7 @@ bool LoadConfigFile(std::string& file_content, const char* filePath) {
   configs[QAT_COMPRESSION_LEVEL] = value;
   configReader.GetValue(config_names[LOG_LEVEL], value, 2, 0);
   configs[LOG_LEVEL] = value;
-  configReader.GetValue(config_names[LOG_STATS_SAMPLES], value, 1000, 0);
+  configReader.GetValue(config_names[LOG_STATS_SAMPLES], value, UINT32_MAX, 0);
   configs[LOG_STATS_SAMPLES] = value;
   configReader.GetValue("log_file", log_file);
   file_content.append(configReader.DumpValues());
