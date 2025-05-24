@@ -55,7 +55,7 @@ uint32_t GetFormatFlag(int window_bits) {
 
 int CompressIAA(uint8_t* input, uint32_t* input_length, uint8_t* output,
                 uint32_t* output_length, qpl_path_t execution_path,
-                int window_bits, bool gzip_ext) {
+                int window_bits, uint32_t max_compressed_size, bool gzip_ext) {
   Log(LogLevel::LOG_INFO, "CompressIAA() Line %d input_length %d\n", __LINE__,
       *input_length);
 
@@ -115,6 +115,12 @@ int CompressIAA(uint8_t* input, uint32_t* input_length, uint8_t* output,
   if (status != QPL_STS_OK) {
     Log(LogLevel::LOG_ERROR, "CompressIAA() Line %d status %d\n", __LINE__,
         status);
+    return 1;
+  }
+  // In some cases, QPL compressed data size is larger than the upper bound
+  // provided by zlib deflateBound.
+  // TODO identify exact conditions and implement more permanent fix.
+  if (max_compressed_size > 0 && job->total_out > max_compressed_size) {
     return 1;
   }
 
