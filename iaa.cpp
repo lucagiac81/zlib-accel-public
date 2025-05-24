@@ -117,6 +117,9 @@ int CompressIAA(uint8_t* input, uint32_t* input_length, uint8_t* output,
         status);
     return 1;
   }
+  if (job->total_out > job->total_in) {
+    return 1;
+  }
 
   *input_length = job->total_in;
   *output_length = job->total_out;
