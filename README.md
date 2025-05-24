@@ -22,7 +22,7 @@ The shim has only been tested on Linux.
 QAT
 - Max buffer size (for compressed/uncompressed data): 512kB
 - Compression: 
-  - Input/output larger than the max buffer size will be compressed into multiple streams (for gzip or zlib formats) or multiple blocks in one stream (for deflate raw format). Note that generating multiple streams is not completely aligned with zlib behavior.
+  - Input/output larger than the max buffer size will be compressed into multiple streams (for gzip or zlib formats) or multiple blocks in one stream (for deflate raw format). Note that generating multiple streams is not completely aligned with zlib behavior. This behavior can be controlled using the qat_compression_allow_chunking option.
 - Decompression
   - If end-of-stream is not reached in one call, zlib-accel will fall back to zlib. Resuming decompression mid-stream (stateful decompression) is not supported by the accelerator.
   - If the input data contains more than one stream, decompression stops at the first end-of-stream (same as zlib).
@@ -191,6 +191,11 @@ qat_compression_level
 - Values: 1,9. Default: 1
 - QAT compression level
 
+qat_compression_allow_chunking
+- Values: 0,1. Default: 0
+- If set to 1, data larger than the QAT HW buffer (512kB) will be split into chunks of HW buffer size when compressing with QAT. This causes the compressed data to be a concatenation of multiple streams (one per chunk). This is not the same behavior as for zlib, which creates a single stream. If decompression expects a single stream, this may cause issues.
+- If set to 0, this option disables chunking for QAT compression. If the input data is larger than the QAT HW buffer, QAT will not be used. This improves zlib compatibility, but it may reduce QAT utilization depending on the workload.
+
 log_level
 - Values: 0,1,2. Default 2
 - This option applies only if the shim is built with DEBUG_LOG=ON.
@@ -232,6 +237,7 @@ unset LD_PRELOAD
 deflate/inflate and related functions
 - deflateInit, deflateInit2, deflate, deflateEnd, deflateReset
 - inflateInit, inflateInit2, inflate, inflateEnd, inflateReset
+
 For deflate, offload is supported for Z_FINISH flush option. Support for additional options will be added in later releases. 
 
 utility functions
