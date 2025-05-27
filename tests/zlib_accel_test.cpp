@@ -374,18 +374,20 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
             compressed_length / test_param.input_chunks_uncompress)) {
       fallback_expected = true;
     } else if (input_length > QAT_HW_BUFF_SZ &&
-               test_param.execution_path_compress != QAT) {
-      // If it was not compressed by QAT, it is not chunked
+               (test_param.execution_path_compress != QAT || !test_param.qat_compression_allow_chunking)) {
+      // If it was not compressed by QAT or QAT chunking is not allowed, it is not chunked
       fallback_expected = true;
       accelerator_tried_val = true;
     } else if (input_length > QAT_HW_BUFF_SZ &&
                test_param.execution_path_compress == QAT &&
+               test_param.qat_compression_allow_chunking &&
                ((GetCompressedFormat(window_bits_uncompress) ==
                      CompressedFormat::ZLIB &&
                  test_param.block_type == incompressible_block) ||
                 GetCompressedFormat(window_bits_uncompress) ==
                     CompressedFormat::DEFLATE_RAW)) {
       // If data was compressed with QAT, it was chunked during compression
+      // (if chunking is allowed)
       // - gzip format: QAT decompression always possible (stream boundaries
       // detected before decompression)
       // - zlib format: QAT decompression possible if compressed
