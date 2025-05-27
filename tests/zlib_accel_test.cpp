@@ -366,8 +366,6 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
   bool fallback_expected = false;
   bool accelerator_tried_val = false;
 #ifdef USE_QAT
-  // if QAT selected, but options not supported or multi-call decompression, and
-  // no zlib fallback
   if (test_param.execution_path_uncompress == QAT) {
     if (!SupportedOptionsQAT(
             window_bits_uncompress,
@@ -380,12 +378,11 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
       accelerator_tried_val = true;
     } else if (input_length > QAT_HW_BUFF_SZ &&
                test_param.execution_path_compress == QAT &&
-               test_param.qat_compression_allow_chunking &&
                ((GetCompressedFormat(window_bits_uncompress) ==
                      CompressedFormat::ZLIB &&
                  test_param.block_type == incompressible_block) ||
                 GetCompressedFormat(window_bits_uncompress) ==
-                    CompressedFormat::DEFLATE_RAW)) {
+                    CompressedFormat::DEFLATE_RAW || !test_param.qat_compression_allow_chunking)) {
       // If data was compressed with QAT, it was chunked during compression
       // (if chunking is allowed)
       // - gzip format: QAT decompression always possible (stream boundaries
@@ -405,8 +402,6 @@ bool ZlibUncompressExpectFallback(TestParam test_param, size_t input_length,
   }
 #endif
 #ifdef USE_IAA
-  // if IAA selected, but options not supported or block not decompressible, and
-  // no zlib fallback
   if (test_param.execution_path_uncompress == IAA) {
     if (!SupportedOptionsIAA(
             window_bits_uncompress,
