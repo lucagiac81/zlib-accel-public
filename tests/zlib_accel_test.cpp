@@ -473,6 +473,24 @@ void VerifyStatIncrementedUpTo(Statistic stat, int up_to) {
   }
 }
 
+void RunDummyQATJob() {
+  size_t input_length = 4096;
+  char* input = GenerateBlock(input_length, compressible_block);
+  std::string compressed;
+  size_t output_upper_bound;
+  ExecutionPath execution_path = UNDEFINED;
+  ZlibCompress(input, input_length, &compressed, 15, 4, &output_upper_bound,
+               &execution_path);
+  char* uncompressed = nullptr;
+  size_t uncompressed_length;
+  size_t input_consumed;
+  ZlibUncompress(compressed.c_str(), compressed.length(), input_length,
+                 &uncompressed, &uncompressed_length, &input_consumed, 15, 1, 1,
+                 &execution_path);
+  delete[] uncompressed;
+  DestroyBlock(input);
+}
+
 class ZlibTest
     : public testing::TestWithParam<
           std::tuple<ExecutionPath, bool, ExecutionPath, bool, int, int, int,
@@ -627,6 +645,17 @@ TEST_P(ZlibTest, CompressDecompress) {
     ASSERT_EQ(uncompressed_length, input_length);
     ASSERT_TRUE(memcmp(uncompressed, input, input_length) == 0);
 #endif
+  }
+
+  // In case of QAT stateless overflow errors with zlib format, in some cases
+  // QAT state is not properly reset. This causes subsequent tests to fail.
+  // Tests pass if run individually. Running a dummy QAT compress/decompress job
+  // mitigates the issue. For zlib-accel uses outside tests, the impact is
+  // minimal (a few more jobs may fall back to zlib) and mitigation is not
+  // necessary.
+  // TODO investigate root cause and remove this mitigation.
+  if (GetCompressedFormat(window_bits_uncompress) == CompressedFormat::ZLIB) {
+    RunDummyQATJob();
   }
 
   delete[] uncompressed;
