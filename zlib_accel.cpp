@@ -470,6 +470,55 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
 #endif  // USE_QAT
     }
 
+#ifdef DEBUG_INFLATE_VERIFY
+    if (ret == 0) {
+      // Save output of accelerator
+      unsigned char* accel_data = new unsigned char[output_len];
+      std::memcpy(accel_data, strm->next_out, output_len);
+
+      // Decompress the same data with zlib
+      unsigned char* next_out_pre = strm->next_out;
+      uint32_t avail_in_pre = strm->avail_in;
+      uint32_t avail_out_pre = strm->avail_out;
+      ret = orig_inflate(strm, flush);
+      uint32_t input_len_zlib = avail_in_pre - strm->avail_in;
+      uint32_t output_len_zlib = avail_out_pre - strm->avail_out;
+
+      // Compare accelerator vs zlib results
+      bool mismatch_found = false;
+      if (input_len != input_len_zlib) {
+        mismatch_found = true;
+        Log(LogLevel::LOG_INFO,
+            "inflate Line %d, strm %p, input length mismatch between accel %d "
+            "zlib %d\n",
+            __LINE__, strm, input_len, input_len_zlib);
+      }
+      if (output_len != output_len_zlib) {
+        mismatch_found = true;
+        Log(LogLevel::LOG_INFO,
+            "inflate Line %d, strm %p output length mismatch between accel %d "
+            "zlib %d\n",
+            __LINE__, strm, output_len, output_len_zlib);
+      }
+      int output_len_min = std::min(output_len, output_len_zlib);
+      int compare_ret = std::memcmp(next_out_pre, accel_data, output_len_min);
+      if (compare_ret != 0) {
+        mismatch_found = true;
+        Log(LogLevel::LOG_INFO,
+            "inflate Line %d, strm %p output mismatch between accel and zlib\n",
+            __LINE__, strm);
+      }
+      if (!mismatch_found) {
+        Log(LogLevel::LOG_INFO,
+            "inflate Line %d, strm %p accel and zlib output match\n", __LINE__,
+            strm);
+      }
+
+      delete[] accel_data;
+      return ret;
+    }
+#endif
+
     if (ret == 0) {
       strm->next_in += input_len;
       strm->avail_in -= input_len;

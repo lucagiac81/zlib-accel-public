@@ -15,6 +15,11 @@ if(ENABLE_STATISTICS)
   add_compile_definitions(ENABLE_STATISTICS)
 endif()
 
+option(DEBUG_INFLATE_VERIFY "Verify that inflate output of accelerator matches zlib (for debug)" OFF)
+if(DEBUG_INFLATE_VERIFY)
+  add_compile_definitions(DEBUG_INFLATE_VERIFY)
+endif()
+
 add_library(${PROJECT_NAME} SHARED config/config_reader.cpp config/config.cpp zlib_accel.cpp iaa.cpp qat.cpp utils.cpp statistics.cpp)
 
 add_custom_target(format
