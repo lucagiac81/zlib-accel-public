@@ -473,6 +473,24 @@ void VerifyStatIncrementedUpTo(Statistic stat, int up_to) {
   }
 }
 
+void RunDummyQatJob() {
+  size_t input_length = 4096;
+  char* input = GenerateBlock(input_length, compressible_block);
+  std::string compressed;
+  size_t output_upper_bound;
+  ExecutionPath execution_path = UNDEFINED;
+  ZlibCompress(input, input_length, &compressed, 15, 4, &output_upper_bound,
+               &execution_path);
+  char* uncompressed = nullptr;
+  size_t uncompressed_length;
+  size_t input_consumed;
+  ZlibUncompress(compressed.c_str(), compressed.length(), input_length,
+                 &uncompressed, &uncompressed_length, &input_consumed, 15, 1, 1,
+                 &execution_path);
+  delete[] uncompressed;
+  DestroyBlock(input);
+}
+
 class ZlibTest
     : public testing::TestWithParam<
           std::tuple<ExecutionPath, bool, ExecutionPath, bool, int, int, int,
@@ -627,6 +645,12 @@ TEST_P(ZlibTest, CompressDecompress) {
     ASSERT_EQ(uncompressed_length, input_length);
     ASSERT_TRUE(memcmp(uncompressed, input, input_length) == 0);
 #endif
+  }
+
+  // TODO remove this section and RunDummyQatJob when QAT state reset issue is
+  // resolved.
+  if (GetCompressedFormat(window_bits_uncompress) == CompressedFormat::ZLIB) {
+    RunDummyQatJob();
   }
 
   delete[] uncompressed;
