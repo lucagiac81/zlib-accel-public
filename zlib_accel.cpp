@@ -227,6 +227,9 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
 
 int ZEXPORT deflateSetDictionary(z_streamp strm, const Bytef* dictionary,
                                  uInt dictLength) {
+  Log(LogLevel::LOG_INFO,
+      "deflateSetDictionary Line %d, strm %p, dictLength %u\n", __LINE__, strm,
+      dictLength);
   DeflateSettings* deflate_settings = deflate_stream_settings.Get(strm);
   deflate_settings->path = ZLIB;
   return orig_deflateSetDictionary(strm, dictionary, dictLength);
@@ -379,6 +382,9 @@ int ZEXPORT inflateInit2_(z_streamp strm, int window_bits, const char* version,
 
 int ZEXPORT inflateSetDictionary(z_streamp strm, const Bytef* dictionary,
                                  uInt dictLength) {
+  Log(LogLevel::LOG_INFO,
+      "inflateSetDictionary Line %d, strm %p, dictLength %u\n", __LINE__, strm,
+      dictLength);
   InflateSettings* inflate_settings = inflate_stream_settings.Get(strm);
   inflate_settings->path = ZLIB;
   return orig_inflateSetDictionary(strm, dictionary, dictLength);
