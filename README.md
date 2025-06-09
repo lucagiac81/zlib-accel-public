@@ -235,10 +235,11 @@ unset LD_PRELOAD
 ## Intercepted Zlib Functions
 
 deflate/inflate and related functions
-- deflateInit, deflateInit2, deflate, deflateEnd, deflateReset
-- inflateInit, inflateInit2, inflate, inflateEnd, inflateReset
+- deflateInit, deflateInit2, deflateSetDictionary, deflate, deflateEnd, deflateReset
+- inflateInit, inflateInit2, inflateSetDictionary, inflate, inflateEnd, inflateReset
 
-For deflate, offload is supported for Z_FINISH flush option. Support for additional options will be added in later releases. 
+For deflate, offload is supported for Z_FINISH flush option. Support for additional options will be added in later releases.   
+For deflateSetDictionary/inflateSetDictionary, zlib-accel simply sets the execution path to zlib, as dictionary compression is currently not supported for accelerators.
 
 utility functions
 - compress, uncompress

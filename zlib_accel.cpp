@@ -40,6 +40,8 @@ static int (*orig_deflateInit_)(z_streamp strm, int level, const char* version,
 static int (*orig_deflateInit2_)(z_streamp strm, int level, int method,
                                  int window_bits, int mem_level, int strategy,
                                  const char* version, int stream_size);
+static int (*orig_deflateSetDictionary)(z_streamp strm, const Bytef* dictionary,
+                                        uInt dictLength);
 static int (*orig_deflate)(z_streamp strm, int flush);
 static int (*orig_deflateEnd)(z_streamp strm);
 static int (*orig_deflateReset)(z_streamp strm);
@@ -47,6 +49,8 @@ static int (*orig_inflateInit_)(z_streamp strm, const char* version,
                                 int stream_size);
 static int (*orig_inflateInit2_)(z_streamp strm, int window_bits,
                                  const char* version, int stream_size);
+static int (*orig_inflateSetDictionary)(z_streamp strm, const Bytef* dictionary,
+                                        uInt dictLength);
 static int (*orig_inflate)(z_streamp strm, int flush);
 static int (*orig_inflateEnd)(z_streamp strm);
 static int (*orig_inflateReset)(z_streamp strm);
@@ -76,6 +80,9 @@ static int init_zlib_accel(void) {
   orig_deflateInit2_ =
       reinterpret_cast<int (*)(z_streamp, int, int, int, int, int, const char*,
                                int)>(dlsym(RTLD_NEXT, "deflateInit2_"));
+  orig_deflateSetDictionary =
+      reinterpret_cast<int (*)(z_streamp, const Bytef*, uInt)>(
+          dlsym(RTLD_NEXT, "deflateSetDictionary"));
   orig_deflate =
       reinterpret_cast<int (*)(z_streamp, int)>(dlsym(RTLD_NEXT, "deflate"));
   orig_deflateEnd =
@@ -87,6 +94,9 @@ static int init_zlib_accel(void) {
   orig_inflateInit2_ =
       reinterpret_cast<int (*)(z_streamp, int, const char*, int)>(
           dlsym(RTLD_NEXT, "inflateInit2_"));
+  orig_inflateSetDictionary =
+      reinterpret_cast<int (*)(z_streamp, const Bytef*, uInt)>(
+          dlsym(RTLD_NEXT, "inflateSetDictionary"));
   orig_inflate =
       reinterpret_cast<int (*)(z_streamp, int)>(dlsym(RTLD_NEXT, "inflate"));
   orig_inflateEnd =
@@ -213,6 +223,16 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
                               strategy);
   return orig_deflateInit2_(strm, level, method, window_bits, mem_level,
                             strategy, version, stream_size);
+}
+
+int ZEXPORT deflateSetDictionary(z_streamp strm, const Bytef* dictionary,
+                                 uInt dictLength) {
+  Log(LogLevel::LOG_INFO,
+      "deflateSetDictionary Line %d, strm %p, dictLength %u\n", __LINE__, strm,
+      dictLength);
+  DeflateSettings* deflate_settings = deflate_stream_settings.Get(strm);
+  deflate_settings->path = ZLIB;
+  return orig_deflateSetDictionary(strm, dictionary, dictLength);
 }
 
 int ZEXPORT deflate(z_streamp strm, int flush) {
@@ -358,6 +378,16 @@ int ZEXPORT inflateInit2_(z_streamp strm, int window_bits, const char* version,
       __LINE__, strm, window_bits);
 
   return orig_inflateInit2_(strm, window_bits, version, stream_size);
+}
+
+int ZEXPORT inflateSetDictionary(z_streamp strm, const Bytef* dictionary,
+                                 uInt dictLength) {
+  Log(LogLevel::LOG_INFO,
+      "inflateSetDictionary Line %d, strm %p, dictLength %u\n", __LINE__, strm,
+      dictLength);
+  InflateSettings* inflate_settings = inflate_stream_settings.Get(strm);
+  inflate_settings->path = ZLIB;
+  return orig_inflateSetDictionary(strm, dictionary, dictLength);
 }
 
 int ZEXPORT inflate(z_streamp strm, int flush) {
