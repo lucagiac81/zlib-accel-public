@@ -156,7 +156,12 @@ struct DeflateSettings {
         method(_method),
         window_bits(_window_bits),
         mem_level(_mem_level),
-        strategy(_strategy) {}
+        strategy(_strategy) {
+    pid_t pid = getpid();
+    if (pid != initial_pid) {
+      path = ZLIB;
+    }
+  }
 
   int level;
   int method;
@@ -167,7 +172,12 @@ struct DeflateSettings {
 };
 
 struct InflateSettings {
-  InflateSettings(int _window_bits) : window_bits(_window_bits) {}
+  InflateSettings(int _window_bits) : window_bits(_window_bits) {
+    pid_t pid = getpid();
+    if (pid != initial_pid) {
+      path = ZLIB;
+    }
+  }
   int window_bits;
   ExecutionPath path = UNDEFINED;
 };
@@ -406,10 +416,6 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
       inflate_settings->path);
   PrintDeflateBlockHeader(LogLevel::LOG_INFO, strm->next_in, strm->avail_in,
                           inflate_settings->window_bits);
-
-  if (getpid() != initial_pid) {
-	inflate_settings->path = ZLIB;
-  }
 
   int ret = 1;
   bool end_of_stream = true;
