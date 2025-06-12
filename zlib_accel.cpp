@@ -70,6 +70,8 @@ static int (*orig_gzclose)(gzFile file);
 static int (*orig_gzeof)(gzFile file);
 
 // Initialize/cleanup functions when library is loaded
+static pid_t initial_pid = 0;
+
 static int init_zlib_accel(void) __attribute__((constructor));
 static void cleanup_zlib_accel(void) __attribute__((destructor));
 
@@ -134,6 +136,8 @@ static int init_zlib_accel(void) {
     CreateLogFile(config::log_file.c_str());
   }
 #endif
+  initial_pid = getpid();
+
   return 0;
 }
 static void cleanup_zlib_accel(void) {
@@ -402,6 +406,10 @@ int ZEXPORT inflate(z_streamp strm, int flush) {
       inflate_settings->path);
   PrintDeflateBlockHeader(LogLevel::LOG_INFO, strm->next_in, strm->avail_in,
                           inflate_settings->window_bits);
+
+  if (getpid() != initial_pid) {
+	inflate_settings->path = ZLIB;
+  }
 
   int ret = 1;
   bool end_of_stream = true;
