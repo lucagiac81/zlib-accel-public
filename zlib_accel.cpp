@@ -69,9 +69,18 @@ static int (*orig_gzread)(gzFile file, voidp buf, unsigned len);
 static int (*orig_gzclose)(gzFile file);
 static int (*orig_gzeof)(gzFile file);
 
-// Initialize/cleanup functions when library is loaded
+// If a process forks a child process, the shared library constructor is not run
+// again. File descriptors are inherited by the forked process, including the
+// ones used by accelerators. Having multiple processes using the accelerators
+// this way leads to errors.
+//
+// So, we track the initial pid (when the constructor runs).
+// In subsequent calls, we check if we are in the same process. If not, we avoid
+// using the accelerators
+// TODO find a solution to use accelerators in child processes.
 static pid_t initial_pid = 0;
 
+// Initialize/cleanup functions when library is loaded
 static int init_zlib_accel(void) __attribute__((constructor));
 static void cleanup_zlib_accel(void) __attribute__((destructor));
 
@@ -137,7 +146,6 @@ static int init_zlib_accel(void) {
   }
 #endif
   initial_pid = getpid();
-
   return 0;
 }
 static void cleanup_zlib_accel(void) {
@@ -156,12 +164,7 @@ struct DeflateSettings {
         method(_method),
         window_bits(_window_bits),
         mem_level(_mem_level),
-        strategy(_strategy) {
-    pid_t pid = getpid();
-    if (pid != initial_pid) {
-      path = ZLIB;
-    }
-  }
+        strategy(_strategy) {}
 
   int level;
   int method;
@@ -172,12 +175,8 @@ struct DeflateSettings {
 };
 
 struct InflateSettings {
-  InflateSettings(int _window_bits) : window_bits(_window_bits) {
-    pid_t pid = getpid();
-    if (pid != initial_pid) {
-      path = ZLIB;
-    }
-  }
+  InflateSettings(int _window_bits) : window_bits(_window_bits) {}
+
   int window_bits;
   ExecutionPath path = UNDEFINED;
 };
@@ -223,6 +222,13 @@ int ZEXPORT deflateInit_(z_streamp strm, int level, const char* version,
 
   deflate_stream_settings.Set(strm, level, Z_DEFLATED, 15, 8,
                               Z_DEFAULT_STRATEGY);
+  pid_t pid = getpid();
+  if (pid != initial_pid) {
+    deflate_stream_settings->path = ZLIB;
+    Log(LogLevel::LOG_INFO,
+        "deflateInit_ Line %d, strm %p, initial pid %d, current pid %d\n",
+        __LINE__, initial_pid, pid);
+  }
   return orig_deflateInit_(strm, level, version, stream_size);
 }
 
@@ -235,6 +241,13 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
 
   deflate_stream_settings.Set(strm, level, method, window_bits, mem_level,
                               strategy);
+  pid_t pid = getpid();
+  if (pid != initial_pid) {
+    deflate_stream_settings->path = ZLIB;
+    Log(LogLevel::LOG_INFO,
+        "deflateInit2_ Line %d, strm %p, initial pid %d, current pid %d\n",
+        __LINE__, initial_pid, pid);
+  }
   return orig_deflateInit2_(strm, level, method, window_bits, mem_level,
                             strategy, version, stream_size);
 }
@@ -382,6 +395,14 @@ int ZEXPORT inflateInit_(z_streamp strm, const char* version, int stream_size) {
   inflate_stream_settings.Set(strm, 15);
   Log(LogLevel::LOG_INFO, "inflateInit_ Line %d, strm %p\n", __LINE__, strm);
 
+  pid_t pid = getpid();
+  if (pid != initial_pid) {
+    inflate_stream_settings->path = ZLIB;
+    Log(LogLevel::LOG_INFO,
+        "inflateInit_ Line %d, strm %p, initial pid %d, current pid %d\n",
+        __LINE__, initial_pid, pid);
+  }
+
   return orig_inflateInit_(strm, version, stream_size);
 }
 
@@ -390,6 +411,14 @@ int ZEXPORT inflateInit2_(z_streamp strm, int window_bits, const char* version,
   inflate_stream_settings.Set(strm, window_bits);
   Log(LogLevel::LOG_INFO, "inflateInit2_ Line %d, strm %p, window_bits %d\n",
       __LINE__, strm, window_bits);
+
+  pid_t pid = getpid();
+  if (pid != initial_pid) {
+    inflate_stream_settings->path = ZLIB;
+    Log(LogLevel::LOG_INFO,
+        "inflateInit2_ Line %d, strm %p, initial pid %d, current pid %d\n",
+        __LINE__, initial_pid, pid);
+  }
 
   return orig_inflateInit2_(strm, window_bits, version, stream_size);
 }
