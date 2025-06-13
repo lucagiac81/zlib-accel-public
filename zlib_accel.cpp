@@ -159,34 +159,36 @@ static thread_local bool in_call = false;
 
 struct DeflateSettings {
   DeflateSettings(int _level, int _method, int _window_bits, int _mem_level,
-                  int _strategy)
+                  int _strategy, ExecutionPath _path)
       : level(_level),
         method(_method),
         window_bits(_window_bits),
         mem_level(_mem_level),
-        strategy(_strategy) {}
+        strategy(_strategy),
+        path(_path) {}
 
   int level;
   int method;
   int window_bits;
   int mem_level;
   int strategy;
-  ExecutionPath path = UNDEFINED;
+  ExecutionPath path;
 };
 
 struct InflateSettings {
-  InflateSettings(int _window_bits) : window_bits(_window_bits) {}
+  InflateSettings(int _window_bits, ExecutionPath _path)
+      : window_bits(_window_bits), path(_path) {}
 
   int window_bits;
-  ExecutionPath path = UNDEFINED;
+  ExecutionPath path;
 };
 
 class DeflateStreamSettings {
  public:
   void Set(z_streamp strm, int level, int method, int window_bits,
-           int mem_level, int strategy) {
-    DeflateSettings* settings =
-        new DeflateSettings(level, method, window_bits, mem_level, strategy);
+           int mem_level, int strategy, ExecutionPath path = UNDEFINED) {
+    DeflateSettings* settings = new DeflateSettings(level, method, window_bits,
+                                                    mem_level, strategy, path);
     map.Set(strm, settings);
   }
 
@@ -201,8 +203,8 @@ DeflateStreamSettings deflate_stream_settings;
 
 class InflateStreamSettings {
  public:
-  void Set(z_streamp strm, int window_bits) {
-    InflateSettings* settings = new InflateSettings(window_bits);
+  void Set(z_streamp strm, int window_bits, ExecutionPath path = UNDEFINED) {
+    InflateSettings* settings = new InflateSettings(window_bits, path);
     map.Set(strm, settings);
   }
 
@@ -220,15 +222,18 @@ int ZEXPORT deflateInit_(z_streamp strm, int level, const char* version,
   Log(LogLevel::LOG_INFO, "deflateInit_ Line %d, strm %p, level %d\n", __LINE__,
       strm, level);
 
-  deflate_stream_settings.Set(strm, level, Z_DEFLATED, 15, 8,
-                              Z_DEFAULT_STRATEGY);
+  ExecutionPath path = UNDEFINED;
   pid_t pid = getpid();
   if (pid != initial_pid) {
-    deflate_stream_settings->path = ZLIB;
+    path = ZLIB;
     Log(LogLevel::LOG_INFO,
         "deflateInit_ Line %d, strm %p, initial pid %d, current pid %d\n",
         __LINE__, initial_pid, pid);
   }
+
+  deflate_stream_settings.Set(strm, level, Z_DEFLATED, 15, 8,
+                              Z_DEFAULT_STRATEGY, path);
+
   return orig_deflateInit_(strm, level, version, stream_size);
 }
 
@@ -239,15 +244,18 @@ int ZEXPORT deflateInit2_(z_streamp strm, int level, int method,
       "deflateInit2_ Line %d, strm %p, level %d, window_bits %d \n", __LINE__,
       strm, level, window_bits);
 
-  deflate_stream_settings.Set(strm, level, method, window_bits, mem_level,
-                              strategy);
+  ExecutionPath path = UNDEFINED;
   pid_t pid = getpid();
   if (pid != initial_pid) {
-    deflate_stream_settings->path = ZLIB;
+    path = ZLIB;
     Log(LogLevel::LOG_INFO,
         "deflateInit2_ Line %d, strm %p, initial pid %d, current pid %d\n",
         __LINE__, initial_pid, pid);
   }
+
+  deflate_stream_settings.Set(strm, level, method, window_bits, mem_level,
+                              strategy, path);
+
   return orig_deflateInit2_(strm, level, method, window_bits, mem_level,
                             strategy, version, stream_size);
 }
@@ -392,33 +400,37 @@ int ZEXPORT deflateReset(z_streamp strm) {
 }
 
 int ZEXPORT inflateInit_(z_streamp strm, const char* version, int stream_size) {
-  inflate_stream_settings.Set(strm, 15);
   Log(LogLevel::LOG_INFO, "inflateInit_ Line %d, strm %p\n", __LINE__, strm);
 
+  ExecutionPath path = UNDEFINED;
   pid_t pid = getpid();
   if (pid != initial_pid) {
-    inflate_stream_settings->path = ZLIB;
+    path = ZLIB;
     Log(LogLevel::LOG_INFO,
         "inflateInit_ Line %d, strm %p, initial pid %d, current pid %d\n",
         __LINE__, initial_pid, pid);
   }
+
+  inflate_stream_settings.Set(strm, 15, path);
 
   return orig_inflateInit_(strm, version, stream_size);
 }
 
 int ZEXPORT inflateInit2_(z_streamp strm, int window_bits, const char* version,
                           int stream_size) {
-  inflate_stream_settings.Set(strm, window_bits);
   Log(LogLevel::LOG_INFO, "inflateInit2_ Line %d, strm %p, window_bits %d\n",
       __LINE__, strm, window_bits);
 
+  ExecutionPath path = UNDEFINED;
   pid_t pid = getpid();
   if (pid != initial_pid) {
-    inflate_stream_settings->path = ZLIB;
+    path = ZLIB;
     Log(LogLevel::LOG_INFO,
-        "inflateInit2_ Line %d, strm %p, initial pid %d, current pid %d\n",
+        "inflateInit_ Line %d, strm %p, initial pid %d, current pid %d\n",
         __LINE__, initial_pid, pid);
   }
+
+  inflate_stream_settings.Set(strm, window_bits, path);
 
   return orig_inflateInit2_(strm, window_bits, version, stream_size);
 }
