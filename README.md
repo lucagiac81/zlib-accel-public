@@ -139,6 +139,14 @@ The CMake options are the same as for the shared library build. Clang is require
 For libFuzzer command-line options, refer to the [documentation](https://llvm.org/docs/LibFuzzer.html).
 
 
+### Sanitizers
+
+Sanitizers can be enabled for library and test builds
+- ASAN (ON/OFF): AddressSanitizer
+- UBSAN (ON/OFF): UndefinedBehaviorSanitizer
+- TSAN (ON/OFF): ThreadSanitizer. It may require disabling ASLR at runtime.
+
+
 ## Configuration
 
 The shim is configured through a file at /etc/zlib-accel.conf
